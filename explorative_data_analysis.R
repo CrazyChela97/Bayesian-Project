@@ -1,5 +1,5 @@
 ### ANALISI MICHI
-
+library(tibble)
 library(readr)
 library(readxl)
 library(dplyr)
@@ -50,7 +50,18 @@ max(dati_per_stazione)
 max(daily_obs)   # osservazioni doppie per alcune stazioni
 length(daily_obs[which(daily_obs > 1)])
 # più di 4000 giorni con osservazioni doppie : come trattarle?
-
+prova = as.data.frame(daily_obs)
+# per es Asti-D'Acquisto 2014-01-01
+raw_data[which(raw_data$Data=='2014-01-01' & raw_data$NomeStazione=="Asti - D'Acquisto"), 2]
+dati_raw$`Asti - D'Acquisto`[which(dati_raw$Data=='2014-01-01')]
+# xtabs fa la somma: no bueno --> proviamo a fare la media
+nobs_per_day = as.matrix(daily_obs)
+write.csv(nobs_per_day, file='nobs.csv')
+nobs_per_day <- read_csv("nobs.csv")
+names(nobs_per_day)[1] = 'Data'
+prova = dati_raw[,-1]/nobs_per_day[,-1]
+prova[is.na(prova)] = 0
+prova = add_column(prova, nobs_per_day$Data, .before=1)
 
 
 # DATASET PULITO
@@ -75,6 +86,13 @@ l = dim(dati_clean)[1]
 data_fun = fData(1:l, t(dati_clean[, -1]))
 plot(data_fun)
 
+
+# plot dati ridotti
+matplot(prova[,-1], type='l')
+# functional data con pacchetto roahd
+l = dim(prova)[1]
+data_fun = fData(1:l, t(prova[, -1]))
+plot(data_fun)
 
 
 ##### Verifica stazioni NA #####
