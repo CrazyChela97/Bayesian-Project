@@ -251,14 +251,15 @@ rm(list = ls())
 
 # DATASET 2018 ------------------------------------------------------------
 
-emilia = read_csv('PM10_Emilia.csv')
+emilia = read_csv('Data/PM10_Emilia.csv')
 emilia = emilia[which(emilia$Anno=="2018"), -1]
-lombardia = read_csv('PM10_Lombardia.csv')
+lombardia = read_csv('Data/PM10_Lombardia.csv')
 lombardia = lombardia[which(lombardia$Anno=="2018"), -1]
-piemonte = read_csv('PM10_Piemonte.csv')
+piemonte = read_csv('Data/PM10_Piemonte.csv')
 piemonte = piemonte[which(piemonte$Anno=="2018"), -1]
 
 data_2018 = rbind(lombardia, emilia, piemonte)
+write_csv(data_2018, 'Total_Data_2018')
 
 # Check on stations : 163 stations
 length(levels(factor(data_2018$NomeStazione)))
@@ -269,13 +270,10 @@ length(levels(factor(data_2018$Data)))
 # Functional Data : PM10 value by day by station
 dati_2018 = xtabs(Valore ~ NomeStazione+Data, data = data_2018)
 dati_2018 = as.matrix(dati_2018)
-write.csv(dati_2018, 'dati_2018_ss.csv')
-dati_2018 = read_csv('dati_2018_ss.csv')
-
 matplot(t(dati_2018[ , -1]), type = 'l')
 # functional data con pacchetto roahd
-l = dim(dati_2018[ ,-1])[2]
-data_fun = fData(1:l, dati_2018[, -1])
+l = dim(dati_2018)[2]
+data_fun = fData(1:l, dati_2018)
 plot(data_fun)
 
 # Plot by region
