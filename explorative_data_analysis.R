@@ -45,7 +45,7 @@ max(PM10$Data) - min(PM10$Data)
 length(levels(factor(PM10$Data)))
 # Dovremmo avere 6 anni e mezzo di dati --> circa 2300 giorni
 # Abbiamo invece solo 1269 giorni registrati
-# Ci sono molti giorni per cui non è stata fatta alcuna rilevazione
+# Ci sono molti giorni per cui non ? stata fatta alcuna rilevazione
 
 ## Controllo sulle stazioni
 
@@ -100,7 +100,7 @@ PM10_raw$Valore[which(is.na(PM10_raw$Valore)=='TRUE')]=-1
 
 #Caso 2:NS=NA
 length(PM10_raw$NomeStazione[which(is.na(PM10_raw$NomeStazione)=='TRUE')]) #328
-#dati da eliminare perchè non non hanno significato senza geolocalizzazione
+#dati da eliminare perch? non non hanno significato senza geolocalizzazione
 
 PM10_raw=PM10_raw[which(is.na(PM10_raw$NomeStazione)=='FALSE'),]
 
@@ -180,3 +180,9 @@ p <- dygraph(don) %>%
   dyRoller(rollPeriod = 1)
 
 p
+
+
+# prova 1234
+
+
+
