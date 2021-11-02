@@ -259,7 +259,7 @@ piemonte = read_csv('Data/PM10_Piemonte.csv')
 piemonte = piemonte[which(piemonte$Anno=="2018"), -1]
 
 data_2018 = rbind(lombardia, emilia, piemonte)
-write_csv(data_2018, 'Total_Data_2018')
+write_csv(data_2018, 'Total_Data_2018.csv')
 
 # Check on stations : 163 stations
 length(levels(factor(data_2018$NomeStazione)))
