@@ -18,6 +18,7 @@ library(lubridate)
 library(raster)
 library(gganimate)
 library(animation)
+library(corrplot)
 
 # Plot delle stazioni -----------------------------------------------------
 
@@ -69,14 +70,56 @@ x_y_em@proj4string <- nord_italia@proj4string
 
 # Plot by region
 plot(nord_italia ,main="Stazioni")
-points(x_y_lom, col = "cornflowerblue", cex = 1 ,pch=20)
-points(x_y_em, col = "darkorange2", cex = 1 ,pch=20)
-points(x_y_piem, col = "chartreuse3", cex = 1 ,pch=20)
-points(x_y_ven, col = "palevioletred3", cex = 1 ,pch=20)
+points(x_y_lom, col = "cornflowerblue", cex = 0.8 ,pch=20)
+points(x_y_em, col = "darkorange2", cex = 0.8 ,pch=20)
+points(x_y_piem, col = "chartreuse3", cex = 0.8 ,pch=20)
+points(x_y_ven, col = "palevioletred3", cex = 0.8 ,pch=20)
 
 axis(1) # showing the axes helps to check whether the coordinates are what you expected
 axis(2)
 
-# Plot by altitude 
-# plot(nord_italia ,main="Stazioni")
-# points(x_y, col = rainbow(4, start = 0, end = 0.25)[x_y], cex = 1 ,pch=20)
+
+# PLOT BY MONTH ---------------------------------------------------------
+StazioniEmilia <- Stazioni[which(Stazioni$Regione == "Emilia-Romagna" ),]
+
+full_data <- read.csv(file = '../Data/Total_Data_2018.csv')
+
+emilia = italy[which(italy@data$DEN_REG=='Emilia-Romagna'), ]
+emilia <- spTransform(emilia, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
+
+
+# consideriamo 12 mesi e il valore medio mensile per ogni stazione in emilia romagna
+months = c("Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre")
+data_mat = matrix(0,nrow=(length(months)*nrow(StazioniEmilia)),ncol=3)
+
+
+for (m in 1:length(months)) {
+  for (i in 1:nrow(StazioniEmilia)) {
+    j = (m-1)*nrow(StazioniEmilia)+i
+    data_mat[j,1]= m  # month
+    data_mat[j,2]= StazioniEmilia$NomeStazione[i]   # id stazione
+    data_mat[j,3]= mean(full_data[which(full_data$NomeStazione==StazioniEmilia$NomeStazione[i] & full_data$Mese==m),"Valore"])  # media mensile
+  }
+}
+
+emilia_data = data.frame(data_mat)
+names(emilia_data) = c("Month","Id_stazione", "Valore")
+emilia_data = emilia_data[which(!is.nan(emilia_data$Valore)),]
+
+png("images/input%03d.png")
+col_bal=colorRampPalette(c("yellow", "orange","red","red4"), bias=0.8)
+
+for (m in 1:length(months)) {
+  dati = emilia_data[which(emilia_data$Month==m), ]
+  data_col_pick=col_bal(10)[as.numeric(cut(dati[,3],breaks=10))]
+  plot(emilia ,main="PM10 medio mensile (Emilia - 2018)", cex.main=2)
+  points(x_y_em, col="black", bg = data_col_pick, cex = 2 ,pch=21)
+  axis(1) 
+  axis(2)
+  colorlegend(col_bal(100), round(seq(min(emilia_data$Valore),max(emilia_data$Valore), len = 3),1), ylim=c(43.5,44), xlim = c(9.3,9.7),  align = 'l')
+  text(12, 45.4, months[m], col="red4", cex=2)
+}
+dev.off()
+
+png_files <- sprintf("images/input%03d.png", 1:months)
+av::av_encode_video(png_files, 'images/output_prova.mp4', framerate = 1)
