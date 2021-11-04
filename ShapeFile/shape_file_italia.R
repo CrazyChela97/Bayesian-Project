@@ -123,3 +123,94 @@ dev.off()
 
 png_files <- sprintf("images/input%03d.png", 1:length(months))
 av::av_encode_video(png_files, 'images/output_prova.mp4', framerate = 1)
+
+# PLOT PROVINCE ---------------------------------------------------------
+italy_prov = readOGR("ProvCM01012021_g/ProvCM01012021_g_WGS84.shp", GDAL1_integer64_policy = TRUE)
+summary(italy_prov) 
+
+# ALL
+nord_it = italy_prov[which(italy_prov@data$COD_REG %in% c(1,2,3,4,5,6,7,8,9)), ]
+plot(nord_it)
+summary(nord_it) 
+
+dati = read.csv(file = '../Data/Total_Data_2018.csv')
+
+prov = nord_it$SIGLA
+PM10_prov = matrix(0,nrow=(12*length(prov)), ncol=3)
+PM10_prov[ ,1] = as.character(prov)
+for (m in 1:12) {
+  for (j in ((m-1)*length(prov)+1):(m*length(prov))) {
+    data = dati[which(dati$Mese==m & dati$Provincia==PM10_prov[j,1]), ]
+    PM10_prov[j,2] = mean(data$Valore)
+    PM10_prov[j,3] = m
+  }
+}
+
+PM10_prov = as.data.frame(PM10_prov)
+names(PM10_prov) = c('Provincia', 'Valore_Medio', 'Mese')
+PM10_prov$Valore_Medio = as.numeric(as.character(PM10_prov$Valore_Medio))
+PM10_prov[is.na(PM10_prov$Valore_Medio), 2] = 0
+
+# plot video
+col_bal=colorRampPalette(c("khaki1","yellow","orange","red","red4"), bias=1)
+PM10_prov$color = col_bal(100)[as.numeric(cut(PM10_prov$Valore_Medio, breaks=100))]
+PM10_prov[PM10_prov$Valore_Medio==0, 4] = 'white' 
+
+png("input%03d.png")
+for (m in 1:12) {
+  data = PM10_prov[which(PM10_prov$Mese==m), ]
+  plot(nord_it, col=data$color, main="PM10 in time")
+  axis(1) 
+  axis(2)
+  colorlegend(col_bal(100), round(seq(min(PM10_prov$Valore),max(PM10_prov$Valore), len = 3),1), 
+              ylim=c(43.5,44), xlim = c(9.3,9.7),  align = 'l')
+  text(12, 45.4, months[m], col="red4", cex=2)
+}
+dev.off()
+png_files <- sprintf("input%03d.png", 1:12)
+av::av_encode_video(png_files, 'province_mesi.mp4', framerate = 1.5)
+
+
+
+
+# EMILIA
+emilia_prov = italy_prov[which(italy_prov@data$COD_REG == 8), ]
+plot(emilia_prov)
+
+dati = read.csv(file = '../Data/PM10_Emilia.csv')
+dati = dati[which(dati$Anno==2018), ]
+
+prov = emilia_prov$SIGLA
+PM10_prov = matrix(0,nrow=(12*length(prov)), ncol=3)
+PM10_prov[ ,1] = as.character(prov)
+for (m in 1:12) {
+  for (j in ((m-1)*length(prov)+1):(m*length(prov))) {
+    data = dati[which(dati$Mese==m & dati$Provincia==PM10_prov[j,1]), ]
+    PM10_prov[j,2] = mean(data$Valore)
+    PM10_prov[j,3] = m
+  }
+}
+
+PM10_prov = as.data.frame(PM10_prov)
+names(PM10_prov) = c('Provincia', 'Valore_Medio', 'Mese')
+PM10_prov$Valore_Medio = as.numeric(as.character(PM10_prov$Valore_Medio))
+
+# plot video
+col_bal=colorRampPalette(c("khaki1","yellow","orange","red","red4"), bias=1)
+PM10_prov$color = col_bal(100)[as.numeric(cut(PM10_prov$Valore_Medio, breaks=100))]
+PM10_prov[PM10_prov$Valore_Medio==0, 4] = 'white' 
+
+png("input%03d.png")
+for (m in 1:12) {
+  data = PM10_prov[which(PM10_prov$Mese==m), ]
+  plot(emilia_prov, col=data$color, main="PM10 - Emilia")
+  axis(1) 
+  axis(2)
+  colorlegend(col_bal(100), round(seq(min(PM10_prov$Valore),max(PM10_prov$Valore), len = 3),1), 
+              ylim=c(43.5,44), xlim = c(9.3,9.7),  align = 'l')
+  text(12, 45.4, months[m], col="red4", cex=2)
+}
+dev.off()
+png_files <- sprintf("input%03d.png", 1:12)
+av::av_encode_video(png_files, 'Emilia_prov_mesi.mp4', framerate = 1.5)
+
