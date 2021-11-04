@@ -107,13 +107,13 @@ names(emilia_data) = c("Month","Id_stazione", "Valore")
 emilia_data = emilia_data[which(!is.nan(emilia_data$Valore)),]
 
 png("images/input%03d.png")
-col_bal=colorRampPalette(c("yellow", "orange","red","red4"), bias=0.8)
+col_bal=colorRampPalette(c("yellow", "orange","red","red4"), bias= 1)
+emilia_data$color = col_bal(100)[as.numeric(cut(emilia_data$Valore,breaks=100))]
 
 for (m in 1:length(months)) {
   dati = emilia_data[which(emilia_data$Month==m), ]
-  data_col_pick=col_bal(10)[as.numeric(cut(dati[,3],breaks=10))]
   plot(emilia ,main="PM10 medio mensile (Emilia - 2018)", cex.main=2)
-  points(x_y_em, col="black", bg = data_col_pick, cex = 2 ,pch=21)
+  points(x_y_em, col="black", bg = dati[,4], cex = 2 ,pch=21)
   axis(1) 
   axis(2)
   colorlegend(col_bal(100), round(seq(min(emilia_data$Valore),max(emilia_data$Valore), len = 3),1), ylim=c(43.5,44), xlim = c(9.3,9.7),  align = 'l')
@@ -121,5 +121,5 @@ for (m in 1:length(months)) {
 }
 dev.off()
 
-png_files <- sprintf("images/input%03d.png", 1:months)
+png_files <- sprintf("images/input%03d.png", 1:length(months))
 av::av_encode_video(png_files, 'images/output_prova.mp4', framerate = 1)
