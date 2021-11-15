@@ -19,6 +19,7 @@ library(raster)
 library(gganimate)
 library(animation)
 library(corrplot)
+library(viridis)     
 
 # Plot delle stazioni -----------------------------------------------------
 
@@ -38,7 +39,7 @@ load("../Data/lat_long.Rda")
 lat_long_point = cbind(as.numeric(as.character(Stazioni[,"Lat"])), as.numeric(as.character(Stazioni[,"Long"])))
 x_y = data.frame(lat=lat_long_point[,1], long=lat_long_point[,2])
 coordinates(x_y) <- ~long+lat
-x_y_lomb@proj4string <- nord_italia@proj4string
+x_y@proj4string <- nord_italia@proj4string
 
 # LOMBARDIA
 lat_long_point_lom = cbind(as.numeric(as.character(Stazioni[which(Stazioni$Regione == "Lombardia" ),"Lat"])), as.numeric(as.character(Stazioni[which(Stazioni$Regione == "Lombardia" ),"Long"])))
@@ -69,14 +70,33 @@ x_y_em@proj4string <- nord_italia@proj4string
 # PLOTS -------------------------------------------------------------------
 
 # Plot by region
-plot(nord_italia ,main="Stazioni")
-points(x_y_lom, col = "cornflowerblue", cex = 0.8 ,pch=20)
-points(x_y_em, col = "darkorange2", cex = 0.8 ,pch=20)
-points(x_y_piem, col = "chartreuse3", cex = 0.8 ,pch=20)
-points(x_y_ven, col = "palevioletred3", cex = 0.8 ,pch=20)
+plot(nord_italia)
+points(x_y_lom, col = "cornflowerblue", cex = 1 ,pch=20)
+points(x_y_em, col = "darkorange2", cex = 1 ,pch=20)
+points(x_y_piem, col = "chartreuse3", cex = 1 ,pch=20)
+points(x_y_ven, col = "palevioletred3", cex = 1 ,pch=20)
+legend("bottomleft", legend=c("Lombardia","Emilia Romagna","Piemonte","Veneto"),
+       col=c("cornflowerblue", "darkorange2", "chartreuse3","palevioletred3"), pch=20, cex=1, bty='n')
 
-axis(1) # showing the axes helps to check whether the coordinates are what you expected
-axis(2)
+
+
+# Plot by area type
+colors = c("chartreuse3", "darkgoldenrod1", "orangered3")
+col_num = as.character(factor(Stazioni$AreaStazione, levels=c( "Rurale", "Suburbano","Urbano"),labels = colors))
+
+plot(nord_italia)
+points(x_y, col = col_num , cex = 1 ,pch=20)
+legend("bottomleft", legend=c("Rural", "Suburban","Urban"), col=colors, pch=20, cex=1, bty='n')
+
+
+# Plot by zone type
+colors = c("steelblue1", "firebrick1", "springgreen4")
+col_num = as.character(factor(Stazioni$TipoStazione, levels=c( "Fondo", "Industriale","Traffico"),labels = colors))
+
+plot(nord_italia)
+points(x_y, col = col_num , cex = 1 ,pch=20)
+legend("bottomleft", legend=c("Background", "Industrial","Traffic"), col=colors, pch=20, cex=1, bty='n')
+
 
 
 # PLOT BY MONTH ---------------------------------------------------------
@@ -89,7 +109,7 @@ emilia <- spTransform(emilia, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
 
 
 # consideriamo 12 mesi e il valore medio mensile per ogni stazione in emilia romagna
-months = c("Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre")
+months = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "Dicember")
 data_mat = matrix(0,nrow=(length(months)*nrow(StazioniEmilia)),ncol=3)
 
 
@@ -112,7 +132,7 @@ emilia_data$color = col_bal(100)[as.numeric(cut(emilia_data$Valore,breaks=100))]
 
 for (m in 1:length(months)) {
   dati = emilia_data[which(emilia_data$Month==m), ]
-  plot(emilia ,main="PM10 medio mensile (Emilia - 2018)", cex.main=2)
+  plot(emilia ,main="Monthly averaged PM10 (Emilia - 2018)", cex.main=2)
   points(x_y_em, col="black", bg = dati[,4], cex = 2 ,pch=21)
   axis(1) 
   axis(2)
