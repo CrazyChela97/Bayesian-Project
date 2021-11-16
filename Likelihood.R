@@ -140,7 +140,7 @@ Seasonality =  function(p,xdata){
   A=p[2]
   phi=p[3]
   
-  data = as.Date(xdata)
+  data = as.Date(xdata, origin = "1970-01-01")
   Seasonality_short = gamma *(weekdays(data) %in% c("lunedì","martedì", "mercoledì","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("giovedì", "venerdì", "sabato"))
   
   numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
@@ -148,6 +148,8 @@ Seasonality =  function(p,xdata){
   
   Seasonality_short * Seasonality_long
 }
+
+# FITTING
   
 # rural
 rural_fit = lsqcurvefit(Seasonality, p0=c(1,1,0), xdata=as.numeric(mean_rural$Date), ydata=mean_rural$MeanValue)
@@ -159,3 +161,31 @@ suburban_fit$x
 urban_fit = lsqcurvefit(Seasonality, p0=c(1,1,0), xdata=as.numeric(mean_urban$Date), ydata=mean_urban$MeanValue)
 urban_fit$x
 
+# PLOTS
+
+# Plot of the values of PM10 divided by zone type and plot of the fitted value 
+ra_fit <- ggplot(data_rural,aes(x=Date, y=PM10, col=Station)) +
+  geom_line() + 
+  scale_color_manual(values=terrain.colors(50)[1:12]) +
+  geom_line(data = mean_rural, aes(x=Date, y=Seasonality(rural_fit$x,Date)+20), col = "darkred", size=1) +
+  ylim(c(0,124)) +
+  labs(title="PM10-Emilia: RURAL AREA") +
+  theme(legend.position="none") 
+
+sa_fit <- ggplot(data_suburban,aes(x=Date, y=PM10, col=Station)) +
+  geom_line() + 
+  scale_color_manual(values=terrain.colors(50)[13:26]) +
+  geom_line(data = mean_suburban, aes(x=Date, y=Seasonality(suburban_fit$x,Date)+mean(data_suburban$PM10)), col = "darkred", size=1) +
+  ylim(c(0,124)) +
+  labs(title="PM10-Emilia: SUBURBAN AREA") +
+  theme(legend.position="none") 
+
+ua_fit <- ggplot(data_urban,aes(x=Date, y=PM10, col=Station)) +
+  geom_line() + 
+  scale_color_manual(values=terrain.colors(50)[27:49]) + 
+  geom_line(data = mean_urban, aes(x=Date, y=Seasonality(urban_fit$x,Date)+mean(data_urban$PM10)), col = "darkred", size=1) +
+  labs(title="PM10-Emilia: URBAN AREA") +
+  theme(legend.position="none") 
+
+
+grid.arrange(ra_fit, sa_fit, ua_fit, ncol=3)
