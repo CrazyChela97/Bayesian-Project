@@ -126,7 +126,7 @@ mean_by_day = merge(mean_by_day_rural, mean_by_day_suburban, by="Group.1")
 mean_by_day = merge(mean_by_day, mean_by_day_urban, by="Group.1")
 colnames(mean_by_day)=c("Weekdays","rural","suburban","urban")
 # ordering by weekdays
-mean_by_day$Weekdays<- factor(mean_by_day$Weekdays, levels=c("lunedÏ","martedÏ", "mercoledÏ", "giovedÏ", "venerdÏ", "sabato","domenica"))
+mean_by_day$Weekdays<- factor(mean_by_day$Weekdays, levels=c("luned?","marted?", "mercoled?", "gioved?", "venerd?", "sabato","domenica"))
 mean_by_day<-mean_by_day[order(mean_by_day$Weekdays),]
 
 mean_by_day
@@ -144,7 +144,7 @@ Seasonality =  function(p,xdata){
   K=p[4]
   
   data = as.Date(xdata, origin = "1970-01-01")
-  Seasonality_short = gamma *(weekdays(data) %in% c("lunedÏ","martedÏ", "mercoledÏ","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("giovedÏ", "venerdÏ", "sabato"))
+  Seasonality_short = gamma *(weekdays(data) %in% c("luned?","marted?", "mercoled?","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("gioved?", "venerd?", "sabato"))
   
   numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
   Seasonality_long =  K+A*cos(omega*numeric_date + phi)
@@ -235,3 +235,43 @@ Shapiro_trans = matrix(data=NA,nrow=2,ncol=3)
   Shapiro_trans[1,1]=test$statistic
   Shapiro_trans[2,1]=test$p.value
   
+
+# Normality test -----------------------------------------------------
+# SEASONALITY FUNCTION
+# tolgo short seasonality perch√® non √® esplicativa
+Seasonality =  function(p,xdata){
+  gamma=p[1]
+  A=p[2]
+  phi=p[3]
+  
+  data = as.Date(xdata, origin = "1970-01-01")
+  Seasonality_short = gamma *(weekdays(data) %in% c("luned?","marted?", "mercoled?","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("gioved?", "venerd?", "sabato"))
+  
+  numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
+  Seasonality_long =  1+A*cos(omega*numeric_date + phi)
+  
+  Seasonality_long
+}
+
+rural_fit = lsqcurvefit(Seasonality, p0=c(1,1,0), xdata=as.numeric(mean_rural$Date), ydata=mean_rural$MeanValue)
+rural_fit$x; rural_fit$ssq
+
+Date = unique(data_rural$Date)
+f_t_rural = Seasonality(rural_fit$x,Date)+20
+
+dati_per_stazione = xtabs(PM10 ~ Date + Station, data=data_rural)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+f_t_mat = t(repmat(f_t_rural,12,1))
+dati_norm = dati_per_stazione - f_t_mat
+
+matplot(dati_per_stazione, type='l')
+matplot(dati_norm, type='l')
+# anche togliendo f(t) non vengono detrendizzati i dati
+# -> bisogna trovare funzione pi√π specifica
+
+# FOURIER ?
+
+
+

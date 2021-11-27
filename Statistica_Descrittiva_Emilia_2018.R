@@ -47,7 +47,7 @@ for(i in 2:(length(Stazioni)+1)){
 colnames(PM10_data.stazione) = c("Date",as.character(Stazioni))
 PM10_data.stazione$Date = as.Date(PM10_data.stazione$Date)
 View(PM10_data.stazione)
-#creo questo dataset perchè mi permette di creare dei NA in tutte le date
+#creo questo dataset perchÃ¨ mi permette di creare dei NA in tutte le date
 #non registrate per una determinata stazione, a livello grafico viene 
 #meglio rispetto all'utilizzare PM10_2018. Infatti con quest'ultimo
 #compaiono righe orizzontali nel plot finale
@@ -58,6 +58,16 @@ Range_val = range(PM10_data.stazione[,-1], na.rm = TRUE)
 Total_mean = mean(as.matrix(PM10_data.stazione[,-1]), na.rm = TRUE)
 Stazioni_mean = NULL
 Stazioni_mean = colMeans(as.matrix(PM10_data.stazione[,-1]), na.rm = TRUE)
+Giorni_mean = rowMeans(as.matrix(PM10_data.stazione[,-1]), na.rm = TRUE)
+Giorni_mean_dataset = as.data.frame(dates)
+Giorni_mean_dataset[,2] = Giorni_mean
+Giorni_mean_dataset[,1] = as.Date(Giorni_mean_dataset[,1])
+colnames(Giorni_mean_dataset) = c("Date", "Mean")
+PM10_2018 = PM10[which(PM10$Anno==2018),c(2,3,4,6,9,10,11,12)]
+Normality = aggregate(formula = Valore ~ Mese,
+                      data = PM10_2018,
+                      FUN = function(x) {y <- shapiro.test(x); c(y$statistic, y$p.value)})
+PM10_2018 = PM10[which(PM10$Anno==2018),c(2,3,4,9,10,11,12)]
 
 # Istogramma e Ridgeline Plot per PM10 ------------------------------------
 
@@ -83,7 +93,7 @@ ggplot(PM10_2018,aes(x=Valore, y=..density.., color=month(Data, label = TRUE), f
     strip.text.x = element_text(size = 8)
   ) +
   xlab("PM10") +
-  ylab("Count") +
+  ylab("Density") +
   facet_wrap(~month(Data, label = TRUE))
 
 x11()
@@ -115,11 +125,15 @@ colnames(data_long) = c("Date","Station","PM10")
 x11()
 ggplot(data_long,aes(x=Date, y=PM10, col= Station)) +
   geom_line() + 
-  scale_color_manual(values=colors()[50:99]) +
-  geom_hline(aes(yintercept=Total_mean, linetype= "Total Mean"), 
-             col= "red", linetype="twodash", size=1.2) +
-  labs(title="PM10-Emilia and Total Mean") +
-  theme(legend.position="none") 
+  scale_color_manual(values=hsv(seq(0,1 - 1/49,length.out = 49), 
+                                .55, 1), guide=FALSE) +
+  geom_line(data = Giorni_mean_dataset, aes(x=Date, y=Mean), col = "darkred",
+            size=1.2, show.legend = TRUE) +
+  labs(title="PM10-Emilia and Mean") + 
+  theme(legend.position=c(0.8, 0.9),
+        legend.direction="horizontal",
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10,face="bold"))
 
 # ZoneType Plots (Rural, Suburban, Urban) ---------------------------------
 
@@ -135,15 +149,15 @@ Area_mean = c(mean(as.matrix(data_long[which(data_long$Zona=="Rurale"),3])),
 x11()
 ggplot(data_long,aes(x=Date, y=PM10, group=Station, col=Zona)) +
   geom_line(alpha=0.5) +
-  scale_color_manual(values=rainbow(3)) +
-  geom_hline(aes(yintercept=Area_mean[1]), col= rainbow(3)[1], 
+  scale_color_manual(values=c("darkgreen",terrain.colors(50)[25],"red")) +
+  geom_hline(aes(yintercept=Area_mean[1]), col= "darkgreen", 
              linetype="twodash", size=1, show.legend = FALSE) +
-  geom_hline(aes(yintercept=Area_mean[2]), col= rainbow(3)[2], 
+  geom_hline(aes(yintercept=Area_mean[2]), col= terrain.colors(50)[25], 
              linetype="twodash", size=1, show.legend = FALSE) +
-  geom_hline(aes(yintercept=Area_mean[3]), col= rainbow(3)[3], 
+  geom_hline(aes(yintercept=Area_mean[3]), col= "red", 
              linetype="twodash", size=1, show.legend = FALSE) +
   labs(title="PM10-Emilia for each zone: Rural, Suburban and Urban") +
-  theme(legend.position=c(0.8, 0.9),
+  theme(legend.position=c(0.5, 0.9),
         legend.direction="horizontal",
         legend.title = element_text(size = 12),
         legend.text = element_text(size = 10,face="bold"))
@@ -156,7 +170,7 @@ ra <- ggplot(data_long[which(data_long$Zona=="Rurale"),],aes(x=Date, y=PM10, col
         geom_line() + 
         scale_color_manual(values=terrain.colors(50)[1:12]) +
         geom_hline(aes(yintercept=Area_mean[1], linetype= "Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
         ylim(c(0,124)) +
         labs(title="PM10-Emilia: RURAL AREA") +
         theme(legend.position="none") 
@@ -165,9 +179,9 @@ ra <- ggplot(data_long[which(data_long$Zona=="Rurale"),],aes(x=Date, y=PM10, col
 #14 zone Suburbane
 sa <- ggplot(data_long[which(data_long$Zona=="Suburbano"),],aes(x=Date, y=PM10, col=Station)) +
         geom_line() + 
-        scale_color_manual(values=terrain.colors(50)[13:26]) +
+        scale_color_manual(values=terrain.colors(50)[21:34]) +
         geom_hline(aes(yintercept=Area_mean[2], linetype= "Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
         ylim(c(0,124)) +
         labs(title="PM10-Emilia: SUBURBAN AREA") +
         theme(legend.position="none") 
@@ -176,9 +190,9 @@ sa <- ggplot(data_long[which(data_long$Zona=="Suburbano"),],aes(x=Date, y=PM10, 
 #23 zone Urbane
 ua <- ggplot(data_long[which(data_long$Zona=="Urbano"),],aes(x=Date, y=PM10, col=Station)) +
         geom_line() + 
-        scale_color_manual(values=terrain.colors(50)[27:49]) +
+        scale_color_manual(values=hsv(1, seq(0,1,length.out = 23) , 1)) +
         geom_hline(aes(yintercept=Area_mean[3], linetype= "Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
         labs(title="PM10-Emilia: URBAN AREA") +
         theme(legend.position="none") 
 
@@ -252,7 +266,7 @@ ggplot(data_long,aes(x=Date, y=PM10, group=Station, col=Giorni)) +
   geom_hline(aes(yintercept=Giorni_mean[7], linetype= "Total Mean"), 
              col= rainbow(7)[7], linetype="twodash", size=1, show.legend = FALSE) +
   labs(title="PM10-Emilia with color for each day of the week") +
-  theme(legend.position=c(0.8, 0.9),
+  theme(legend.position=c(0.5, 0.9),
         legend.direction="horizontal",
         legend.title = element_text(size = 12),
         legend.text = element_text(size = 10))
@@ -278,6 +292,20 @@ ggplot(PM10_2018,aes(x=Valore, color=WGio, fill=WGio)) +
   ylab("Count") +
   facet_wrap(~WGio)
 
+x11()
+ggplot(PM10_2018, aes(x = Valore, y = rev(WGio), fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01) +
+  scale_fill_gradient(low="yellow", high="purple") +
+  labs(title = 'PM10 in 2018 for each day in a week') +
+  ylab("Days") +
+  xlim(c(0,90)) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    strip.text.x = element_text(size = 8)
+  )
+
 #settimana vs weekend
 PM10_2018$Ends = rep("Day", dim(PM10_2018)[1])
 PM10_2018[which(PM10_2018$WGio == "sab" | PM10_2018$WGio == "dom"),9] = "Ends"
@@ -294,7 +322,7 @@ ggplot(PM10_2018,aes(x=Valore, y =..density.., color=Ends, fill=Ends)) +
     strip.text.x = element_text(size = 8)
   ) +
   xlab("PM10") +
-  ylab("Count") +
+  ylab("Density") +
   facet_wrap(~Ends)
 
 # Provincia Plots ---------------------------------------------------------
@@ -341,8 +369,9 @@ bo <- ggplot(data_long[which(data_long$Provincia=="BO"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[1:7]) +
         geom_hline(aes(yintercept=Province_mean[1,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: BO") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="FC")])))
@@ -351,8 +380,9 @@ fc <- ggplot(data_long[which(data_long$Provincia=="FC"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[8:12]) +
         geom_hline(aes(yintercept=Province_mean[2,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: FC") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="FE")])))
@@ -361,8 +391,9 @@ fe <- ggplot(data_long[which(data_long$Provincia=="FE"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[13:16]) +
         geom_hline(aes(yintercept=Province_mean[3,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: FE") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="MO")])))
@@ -371,8 +402,9 @@ mo <- ggplot(data_long[which(data_long$Provincia=="MO"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[17:22]) +
         geom_hline(aes(yintercept=Province_mean[4,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: MO") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="PC")])))
@@ -381,8 +413,9 @@ pc <- ggplot(data_long[which(data_long$Provincia=="PC"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[23:29]) +
         geom_hline(aes(yintercept=Province_mean[5,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: PC") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="PR")])))
@@ -391,8 +424,9 @@ pr <- ggplot(data_long[which(data_long$Provincia=="PR"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[30:36]) +
         geom_hline(aes(yintercept=Province_mean[6,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: PR") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="RA")])))
@@ -401,8 +435,9 @@ ra <- ggplot(data_long[which(data_long$Provincia=="RA"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[37:40]) +
         geom_hline(aes(yintercept=Province_mean[7,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: RA") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="RE")])))
@@ -411,8 +446,9 @@ re <- ggplot(data_long[which(data_long$Provincia=="RE"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[41:45]) +
         geom_hline(aes(yintercept=Province_mean[8,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: RE") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Provincia=="RN")])))
@@ -421,12 +457,13 @@ rn <- ggplot(data_long[which(data_long$Provincia=="RN"),],aes(x=Date, y=PM10, co
         geom_line() +
         scale_color_manual(values=rainbow(49)[46:49]) +
         geom_hline(aes(yintercept=Province_mean[9,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: RN") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 x11()
-grid.arrange(bo, fc, fe, mo, pc, pr, re, re, rn, ncol=3)
+grid.arrange(bo, fc, fe, mo, pc, pr, ra, re, rn, ncol=3)
 
 #Istogrammi e Ridgeplots
 
@@ -477,40 +514,44 @@ ggplot(data_long,aes(x=Date, y=PM10, group=Station, col=Zonizzazione)) +
 #4
 ag <- ggplot(data_long[which(data_long$Zonizzazione=="Agglomerato"),],aes(x=Date, y=PM10, col=Station)) +
         geom_line() +
-        scale_color_manual(values=heat.colors(8)[1:4]) +
+        scale_color_manual(values=hsv(1, seq(0,1,length.out = 5) , 1)[2:5]) +
         geom_hline(aes(yintercept=Zonizzazione_mean[1,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia: Agglomerato") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: Conurbation") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Zonizzazione=="Appennino")])))
 #4
 ap <- ggplot(data_long[which(data_long$Zonizzazione=="Appennino"),],aes(x=Date, y=PM10, col=Station)) +
         geom_line() +
-        scale_color_manual(values=heat.colors(8)[5:8]) +
+        scale_color_manual(values=hsv(0.3, seq(0,1,length.out = 5) , 1)[2:5]) +
         geom_hline(aes(yintercept=Zonizzazione_mean[2,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
         labs(title="PM10-Emilia: Appennino") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 #levels(as.factor(as.character(data_long$Station[which(data_long$Zonizzazione=="Pianura Est")])))
 #18
 pe <- ggplot(data_long[which(data_long$Zonizzazione=="Pianura Est"),],aes(x=Date, y=PM10, col=Station)) +
         geom_line() +
-        scale_color_manual(values=heat.colors(49)[9:26]) +
+        scale_color_manual(values=hsv(0.6, seq(0,1,length.out = 19) , 1)[2:19]) +
         geom_hline(aes(yintercept=Zonizzazione_mean[3,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia: Pianura Est") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: East Plain") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
       
 #levels(as.factor(as.character(data_long$Station[which(data_long$Zonizzazione=="Pianura Ovest")])))
 #23
 po <- ggplot(data_long[which(data_long$Zonizzazione=="Pianura Ovest"),],aes(x=Date, y=PM10, col=Station)) +
         geom_line() +
-        scale_color_manual(values=heat.colors(49)[27:49]) +
+        scale_color_manual(values=hsv(0.8, seq(0,1,length.out = 24) , 1)[2:24]) +
         geom_hline(aes(yintercept=Zonizzazione_mean[4,2], linetype= "Total Mean"), 
-                   col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-        labs(title="PM10-Emilia: Pianura Ovest") +
+                   col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+        labs(title="PM10-Emilia: West Plain") +
+        ylim(c(0,124)) +
         theme(legend.position="none")
 
 x11()
@@ -565,8 +606,8 @@ f <- ggplot(data_long[which(data_long$Tipo=="Fondo"),],aes(x=Date, y=PM10, col=S
        geom_line() +
        scale_color_manual(values=colors(59)[10:43]) +
        geom_hline(aes(yintercept=Tipo_mean[1,2], linetype= "Total Mean"), 
-                  col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-       labs(title="PM10-Emilia:Fondo") +
+                  col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+       labs(title="PM10-Emilia: Background") +
        ylim(c(0,124)) +
        theme(legend.position="none")
 
@@ -576,8 +617,8 @@ i <- ggplot(data_long[which(data_long$Tipo=="Industriale"),],aes(x=Date, y=PM10,
        geom_line() +
        scale_color_manual(values=colors(59)[44:48]) +
        geom_hline(aes(yintercept=Tipo_mean[2,2], linetype= "Total Mean"), 
-                  col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-       labs(title="PM10-Emilia: Industriale") +
+                  col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+       labs(title="PM10-Emilia: Industrial") +
        ylim(c(0,124)) +
        theme(legend.position="none")
 
@@ -587,8 +628,8 @@ t <- ggplot(data_long[which(data_long$Tipo=="Traffico"),],aes(x=Date, y=PM10, co
      geom_line() +
      scale_color_manual(values=colors(59)[49:59]) +
      geom_hline(aes(yintercept=Tipo_mean[3,2], linetype= "Total Mean"), 
-                col= "red", linetype="twodash", size=1.2, show.legend =TRUE) +
-     labs(title="PM10-Emilia: Traffico") +
+                col= "darkred", linetype="twodash", size=1.2, show.legend =TRUE) +
+     labs(title="PM10-Emilia: Traffic") +
      ylim(c(0,124)) +
      theme(legend.position="none")
 
