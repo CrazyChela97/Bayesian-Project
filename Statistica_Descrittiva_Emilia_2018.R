@@ -47,7 +47,7 @@ for(i in 2:(length(Stazioni)+1)){
 colnames(PM10_data.stazione) = c("Date",as.character(Stazioni))
 PM10_data.stazione$Date = as.Date(PM10_data.stazione$Date)
 View(PM10_data.stazione)
-#creo questo dataset perchè mi permette di creare dei NA in tutte le date
+#creo questo dataset perchÃ¨ mi permette di creare dei NA in tutte le date
 #non registrate per una determinata stazione, a livello grafico viene 
 #meglio rispetto all'utilizzare PM10_2018. Infatti con quest'ultimo
 #compaiono righe orizzontali nel plot finale
