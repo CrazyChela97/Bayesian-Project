@@ -145,7 +145,7 @@ Seasonality =  function(p,xdata){
   
   data = as.Date(xdata, origin = "1970-01-01")
   #Seasonality_short = gamma *(weekdays(data) %in% c("luned?","marted?", "mercoled?","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("gioved?", "venerd?", "sabato"))
-  Seasonality_short = 1  # La seasonality short non � molto esplicativa
+  Seasonality_short = 1  # La seasonality short non ? molto esplicativa
   numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
   Seasonality_long =  K+A*cos(omega*numeric_date + phi)
   
@@ -236,8 +236,125 @@ Shapiro_trans = matrix(data=NA,nrow=2,ncol=3)
   # storing the results of the Shapiro test
   Shapiro_trans[1,1]=test$statistic
   Shapiro_trans[2,1]=test$p.value
+
   
+# MICHI------------------------------------
+
+# RURAL
+Date = unique(data_rural$Date)
+f_t_rural = Seasonality(rural_fit$x,Date)
+
+dati_per_stazione = xtabs(PM10 ~ Date + Station, data=data_rural)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+f_t_mat = t(repmat(f_t_rural,12,1))
+dati_norm = dati_per_stazione - f_t_mat
+
+matplot(dati_per_stazione, type='l')
+matplot(dati_norm, type='l') 
+# non abbastanza detrend
+# Trasformazione BOXCOX
+BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+for (i in 1:dim(dati_norm)[2]){
+  intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
+  BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+
+matplot(BC_data, type='l') # molto meglio! controlliamo normalità
+shapiro_BC = rep(0,12)
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_norm)[2]){
+  hist(BC_data[,i])
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+}
+as.data.frame(shapiro_BC)
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_norm)[2]){
+  qqnorm(BC_data[,i], main="QQ norm")
+  qqline(BC_data[,i])
+}
+dev.off()
+
+# URBAN
+Date = unique(data_urban$Date)
+f_t_urban = Seasonality(urban_fit$x,Date)
+
+dati_per_stazione = xtabs(PM10 ~ Date + Station, data=data_urban)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+f_t_mat = t(repmat(f_t_urban, dim(data_urban)[2],1))
+dati_norm = dati_per_stazione - f_t_mat
+
+matplot(dati_per_stazione, type='l')
+matplot(dati_norm, type='l') 
+# non abbastanza detrend
+
+# Trasformazione BOXCOX
+BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+for (i in 1:dim(dati_norm)[2]){
+  intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
+  BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
 
 
+matplot(BC_data, type='l') # molto meglio! controlliamo normalità
+shapiro_BC = rep(0, dim(dati_norm)[2])
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(dati_norm)[2]){
+  hist(BC_data[,i])
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+}
+as.data.frame(shapiro_BC)
 
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(dati_norm)[2]){
+  qqnorm(BC_data[,i], main="QQ norm")
+  qqline(BC_data[,i])
+}
+
+
+# SUBURBAN
+Date = unique(data_suburban$Date)
+f_t_urban = Seasonality(suburban_fit$x,Date)
+
+dati_per_stazione = xtabs(PM10 ~ Date + Station, data=data_suburban)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+f_t_mat = t(repmat(f_t_urban, dim(data_suburban)[2],1))
+dati_norm = dati_per_stazione - f_t_mat
+
+matplot(dati_per_stazione, type='l')
+matplot(dati_norm, type='l') 
+# non abbastanza detrend
+
+# Trasformazione BOXCOX
+BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+for (i in 1:dim(dati_norm)[2]){
+  intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
+  BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+
+matplot(BC_data, type='l') # molto meglio! controlliamo normalità
+shapiro_BC = rep(0, dim(dati_norm)[2])
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(dati_norm)[2]){
+  hist(BC_data[,i])
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+}
+as.data.frame(shapiro_BC)
+
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(dati_norm)[2]){
+  qqnorm(BC_data[,i], main="QQ norm")
+  qqline(BC_data[,i])
+}
 
