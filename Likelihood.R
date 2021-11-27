@@ -144,8 +144,8 @@ Seasonality =  function(p,xdata){
   K=p[4]
   
   data = as.Date(xdata, origin = "1970-01-01")
-  Seasonality_short = gamma *(weekdays(data) %in% c("luned?","marted?", "mercoled?","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("gioved?", "venerd?", "sabato"))
-  
+  #Seasonality_short = gamma *(weekdays(data) %in% c("luned?","marted?", "mercoled?","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("gioved?", "venerd?", "sabato"))
+  Seasonality_short = 1  # La seasonality short non � molto esplicativa
   numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
   Seasonality_long =  K+A*cos(omega*numeric_date + phi)
   
@@ -200,7 +200,8 @@ Shapiro=matrix(data=NA,nrow=2,ncol=3) # in the first row are stored the statisti
 Shapiro_trans = matrix(data=NA,nrow=2,ncol=3)
 # RURAL
   data_rural$Residual_value = data_rural$PM10 - Seasonality(rural_fit$x, data_rural$Date)
-
+  
+  # PLOTS BEFORE TRASFORMATION
   # Histogram
   hist(data_rural$Residual_value, main="Histogram")
   # normal QQ plot
@@ -221,6 +222,7 @@ Shapiro_trans = matrix(data=NA,nrow=2,ncol=3)
   print(intermediate$lambda)
   data_rural$Residual_value_trans=bcnPower(data_rural$Residual_value,intermediate$lambda,gamma=intermediate$gamma)
   
+  # PLOTS AFTER TRASFORMATION
   # Histogram
   hist(data_rural$Residual_value_trans, main="Histogram")
   # normal QQ plot
@@ -236,42 +238,6 @@ Shapiro_trans = matrix(data=NA,nrow=2,ncol=3)
   Shapiro_trans[2,1]=test$p.value
   
 
-# Normality test -----------------------------------------------------
-# SEASONALITY FUNCTION
-# tolgo short seasonality perchè non è esplicativa
-Seasonality =  function(p,xdata){
-  gamma=p[1]
-  A=p[2]
-  phi=p[3]
-  
-  data = as.Date(xdata, origin = "1970-01-01")
-  Seasonality_short = gamma *(weekdays(data) %in% c("luned?","marted?", "mercoled?","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("gioved?", "venerd?", "sabato"))
-  
-  numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
-  Seasonality_long =  1+A*cos(omega*numeric_date + phi)
-  
-  Seasonality_long
-}
-
-rural_fit = lsqcurvefit(Seasonality, p0=c(1,1,0), xdata=as.numeric(mean_rural$Date), ydata=mean_rural$MeanValue)
-rural_fit$x; rural_fit$ssq
-
-Date = unique(data_rural$Date)
-f_t_rural = Seasonality(rural_fit$x,Date)+20
-
-dati_per_stazione = xtabs(PM10 ~ Date + Station, data=data_rural)
-dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
-staz = which(colSums(dati_per_stazione) != 0)
-dati_per_stazione = dati_per_stazione[,staz]
-f_t_mat = t(repmat(f_t_rural,12,1))
-dati_norm = dati_per_stazione - f_t_mat
-
-matplot(dati_per_stazione, type='l')
-matplot(dati_norm, type='l')
-# anche togliendo f(t) non vengono detrendizzati i dati
-# -> bisogna trovare funzione più specifica
-
-# FOURIER ?
 
 
 
