@@ -15,9 +15,11 @@ require(gridExtra)
 library(reshape2)
 library(pracma)
 library(lubridate)
+library(car) 
 
 # Load data ---------------------------------------------------------------
 PM10 = read_csv('Data/PM10_Emilia.csv')
+
 PM10_2018 = PM10[which(PM10$Anno==2018),c(2,3,4,9,10,11,12)]
 colnames(PM10_2018) = c("Data","NS","Valore","Provincia","Tipo","Area","Zonizzazione")
 PM10_2018$NS = as.factor(PM10_2018$NS)
@@ -139,12 +141,13 @@ Seasonality =  function(p,xdata){
   gamma=p[1]
   A=p[2]
   phi=p[3]
+  K=p[4]
   
   data = as.Date(xdata, origin = "1970-01-01")
   Seasonality_short = gamma *(weekdays(data) %in% c("lunedì","martedì", "mercoledì","domenica")) + (7-4*gamma)/3 * (weekdays(data) %in% c("giovedì", "venerdì", "sabato"))
   
   numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
-  Seasonality_long =  1+A*cos(omega*numeric_date + phi)
+  Seasonality_long =  K+A*cos(omega*numeric_date + phi)
   
   Seasonality_short * Seasonality_long
 }
@@ -152,13 +155,13 @@ Seasonality =  function(p,xdata){
 # FITTING
   
 # rural
-rural_fit = lsqcurvefit(Seasonality, p0=c(1,1,0), xdata=as.numeric(mean_rural$Date), ydata=mean_rural$MeanValue)
+rural_fit = lsqcurvefit(Seasonality, p0=c(1,1,0,mean(data_rural$PM10)), xdata=as.numeric(mean_rural$Date), ydata=mean_rural$MeanValue)
 rural_fit$x; rural_fit$ssq
 # suburban
-suburban_fit = lsqcurvefit(Seasonality, p0=c(1,1,0), xdata=as.numeric(mean_suburban$Date), ydata=mean_suburban$MeanValue)
+suburban_fit = lsqcurvefit(Seasonality, p0=c(1,1,0,mean(data_suburban$PM10)), xdata=as.numeric(mean_suburban$Date), ydata=mean_suburban$MeanValue)
 suburban_fit$x
 # urban
-urban_fit = lsqcurvefit(Seasonality, p0=c(1,1,0), xdata=as.numeric(mean_urban$Date), ydata=mean_urban$MeanValue)
+urban_fit = lsqcurvefit(Seasonality, p0=c(1,1,0,mean(data_urban$PM10)), xdata=as.numeric(mean_urban$Date), ydata=mean_urban$MeanValue)
 urban_fit$x
 
 # PLOTS
@@ -167,7 +170,7 @@ urban_fit$x
 ra_fit <- ggplot(data_rural,aes(x=Date, y=PM10, col=Station)) +
   geom_line() + 
   scale_color_manual(values=terrain.colors(50)[1:12]) +
-  geom_line(data = mean_rural, aes(x=Date, y=Seasonality(rural_fit$x,Date)+20), col = "darkred", size=1) +
+  geom_line(data = mean_rural, aes(x=Date, y=Seasonality(rural_fit$x,Date)), col = "darkred", size=1) +
   ylim(c(0,124)) +
   labs(title="PM10-Emilia: RURAL AREA") +
   theme(legend.position="none") 
@@ -175,7 +178,7 @@ ra_fit <- ggplot(data_rural,aes(x=Date, y=PM10, col=Station)) +
 sa_fit <- ggplot(data_suburban,aes(x=Date, y=PM10, col=Station)) +
   geom_line() + 
   scale_color_manual(values=terrain.colors(50)[13:26]) +
-  geom_line(data = mean_suburban, aes(x=Date, y=Seasonality(suburban_fit$x,Date)+mean(data_suburban$PM10)), col = "darkred", size=1) +
+  geom_line(data = mean_suburban, aes(x=Date, y=Seasonality(suburban_fit$x,Date)), col = "darkred", size=1) +
   ylim(c(0,124)) +
   labs(title="PM10-Emilia: SUBURBAN AREA") +
   theme(legend.position="none") 
@@ -183,9 +186,52 @@ sa_fit <- ggplot(data_suburban,aes(x=Date, y=PM10, col=Station)) +
 ua_fit <- ggplot(data_urban,aes(x=Date, y=PM10, col=Station)) +
   geom_line() + 
   scale_color_manual(values=terrain.colors(50)[27:49]) + 
-  geom_line(data = mean_urban, aes(x=Date, y=Seasonality(urban_fit$x,Date)+mean(data_urban$PM10)), col = "darkred", size=1) +
+  geom_line(data = mean_urban, aes(x=Date, y=Seasonality(urban_fit$x,Date)), col = "darkred", size=1) +
   labs(title="PM10-Emilia: URBAN AREA") +
   theme(legend.position="none") 
 
 
 grid.arrange(ra_fit, sa_fit, ua_fit, ncol=3)
+
+
+
+# Study of Gaussianity ----------------------------------------------------
+Shapiro=matrix(data=NA,nrow=2,ncol=3) # in the first row are stored the statistics of each variables, in the second row the p-values
+Shapiro_trans = matrix(data=NA,nrow=2,ncol=3)
+# RURAL
+  data_rural$Residual_value = data_rural$PM10 - Seasonality(rural_fit$x, data_rural$Date)
+
+  # Histogram
+  hist(data_rural$Residual_value, main="Histogram")
+  # normal QQ plot
+  qqnorm(data_rural$Residual_value, main="QQ norm")
+  qqline(data_rural$Residual_value)
+  # BoxPlot
+  boxplot(data_rural$Residual_value,main="BoxPlot")
+  
+  test=shapiro.test(data_rural$Residual_value)
+  print(test)
+  # storing the results of the Shapiro test
+  Shapiro[1,1]=test$statistic
+  Shapiro[2,1]=test$p.value
+  
+  
+  # BoxCox power trasformation
+  intermediate=powerTransform(data_rural$Residual_value~1,family = "bcnPower")
+  print(intermediate$lambda)
+  data_rural$Residual_value_trans=bcnPower(data_rural$Residual_value,intermediate$lambda,gamma=intermediate$gamma)
+  
+  # Histogram
+  hist(data_rural$Residual_value_trans, main="Histogram")
+  # normal QQ plot
+  qqnorm(data_rural$Residual_value_trans, main="QQ norm")
+  qqline(data_rural$Residual_value_trans)
+  # BoxPlot
+  boxplot(data_rural$Residual_value_trans,main="BoxPlot")
+  
+  test=shapiro.test(data_rural$Residual_value_trans)
+  print(test)
+  # storing the results of the Shapiro test
+  Shapiro_trans[1,1]=test$statistic
+  Shapiro_trans[2,1]=test$p.value
+  
