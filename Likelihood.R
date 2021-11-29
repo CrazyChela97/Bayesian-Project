@@ -238,9 +238,9 @@ Shapiro_trans = matrix(data=NA,nrow=2,ncol=3)
   Shapiro_trans[2,1]=test$p.value
 
   
-# MICHI------------------------------------
+# BOX-COX TRANSFORMATION : different parameters ------------------------------------
 
-# RURAL
+# --- RURAL ---
 Date = unique(data_rural$Date)
 f_t_rural = Seasonality(rural_fit$x,Date)
 
@@ -252,33 +252,42 @@ f_t_mat = t(repmat(f_t_rural,12,1))
 dati_norm = dati_per_stazione - f_t_mat
 
 matplot(dati_per_stazione, type='l')
-matplot(dati_norm, type='l') 
-# non abbastanza detrend
-# Trasformazione BOXCOX
+matplot(dati_norm, type='l') # non c'è abbastanza detrend
+
+# BOX-COX TRANSFORMATION for each station
 BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
 for (i in 1:dim(dati_norm)[2]){
   intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
   BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
 }
+matplot(BC_data, type='l') 
 
-matplot(BC_data, type='l') # molto meglio! controlliamo normalità
+# NORMALITY CHECK
+# Shapiro test + histogram
 shapiro_BC = rep(0,12)
 x11()
 par(mfrow=c(3,4))
 for (i in 1:dim(dati_norm)[2]){
-  hist(BC_data[,i])
   shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
 }
 as.data.frame(shapiro_BC)
+# QQ-Plot
 x11()
 par(mfrow=c(3,4))
 for (i in 1:dim(dati_norm)[2]){
-  qqnorm(BC_data[,i], main="QQ norm")
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
   qqline(BC_data[,i])
 }
+# SUMMARY : 8 normal
+#           4 not-normal
 dev.off()
 
-# URBAN
+
+
+# --- URBAN ---
 Date = unique(data_urban$Date)
 f_t_urban = Seasonality(urban_fit$x,Date)
 
@@ -290,36 +299,41 @@ f_t_mat = t(repmat(f_t_urban, dim(data_urban)[2],1))
 dati_norm = dati_per_stazione - f_t_mat
 
 matplot(dati_per_stazione, type='l')
-matplot(dati_norm, type='l') 
-# non abbastanza detrend
+matplot(dati_norm, type='l') # non abbastanza detrend
 
-# Trasformazione BOXCOX
+# BOX-COX TRANSFORMATION for each station
 BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
 for (i in 1:dim(dati_norm)[2]){
   intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
   BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
 }
+matplot(BC_data, type='l') 
 
-
-matplot(BC_data, type='l') # molto meglio! controlliamo normalità
+# NORMALITY CHECK
+# Shapiro test + histogram
 shapiro_BC = rep(0, dim(dati_norm)[2])
 x11()
 par(mfrow=c(5,5))
 for (i in 1:dim(dati_norm)[2]){
-  hist(BC_data[,i])
   shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
 }
 as.data.frame(shapiro_BC)
-
+# QQ-Plot
 x11()
 par(mfrow=c(5,5))
 for (i in 1:dim(dati_norm)[2]){
-  qqnorm(BC_data[,i], main="QQ norm")
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
   qqline(BC_data[,i])
 }
+# SUMMARY : tutti normali
+dev.off()
 
 
-# SUBURBAN
+
+# --- SUBURBAN ---
 Date = unique(data_suburban$Date)
 f_t_urban = Seasonality(suburban_fit$x,Date)
 
@@ -331,30 +345,150 @@ f_t_mat = t(repmat(f_t_urban, dim(data_suburban)[2],1))
 dati_norm = dati_per_stazione - f_t_mat
 
 matplot(dati_per_stazione, type='l')
-matplot(dati_norm, type='l') 
-# non abbastanza detrend
+matplot(dati_norm, type='l') # non abbastanza detrend
 
-# Trasformazione BOXCOX
+# BOX-COX TRANSFORMATION for each station
 BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
 for (i in 1:dim(dati_norm)[2]){
   intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
   BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
 }
+matplot(BC_data, type='l')
 
-matplot(BC_data, type='l') # molto meglio! controlliamo normalità
+# NORMALITY CHECK
+# Shapiro test + histogram
 shapiro_BC = rep(0, dim(dati_norm)[2])
 x11()
 par(mfrow=c(4,4))
 for (i in 1:dim(dati_norm)[2]){
-  hist(BC_data[,i])
   shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
 }
 as.data.frame(shapiro_BC)
-
+# QQ-Plot
 x11()
-par(mfrow=c(5,5))
+par(mfrow=c(4,4))
 for (i in 1:dim(dati_norm)[2]){
-  qqnorm(BC_data[,i], main="QQ norm")
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
   qqline(BC_data[,i])
 }
+# SUMMARY : tutti normali
+dev.off()
 
+
+
+# BOX-COX TRANSFORMATION : same parameter ---------------------------------
+
+# --- RURAL ---
+data_rural$residuals = data_rural$PM10 - Seasonality(rural_fit$x, data_rural$Date)
+# BOX-COX TRANSFORMATION unica per tutte le stazioni
+intermediate = powerTransform(data_rural$residuals~1, family = "bcnPower")
+data_rural$res_BC = bcnPower(data_rural$residuals, intermediate$lambda, gamma=intermediate$gamma)
+
+dati_BC = xtabs(res_BC ~ Date + Station, data=data_rural)
+dati_BC = as.data.frame.matrix(dati_BC)
+staz = which(colSums(dati_BC) != 0)
+dati_BC = dati_BC[,staz]
+
+matplot(dati_BC, type='l') 
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0, dim(dati_BC)[2])
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main="QQ norm", col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 5 normal
+#           7 not-normal
+dev.off()
+
+
+
+# --- SUBURBAN ---
+data_suburban$residuals = data_suburban$PM10 - Seasonality(suburban_fit$x, data_suburban$Date)
+# BOX-COX TRANSFORMATION unica per tutte le stazioni
+intermediate = powerTransform(data_suburban$residuals~1, family = "bcnPower")
+data_suburban$res_BC = bcnPower(data_suburban$residuals, intermediate$lambda, gamma=intermediate$gamma)
+
+dati_BC = xtabs(res_BC ~ Date + Station, data=data_suburban)
+dati_BC = as.data.frame.matrix(dati_BC)
+staz = which(colSums(dati_BC) != 0)
+dati_BC = dati_BC[,staz]
+
+matplot(dati_BC, type='l') 
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0, dim(dati_BC)[2])
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main="QQ norm", col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 9 normal
+#           5 not-normal
+dev.off()
+
+
+
+# --- URBAN ---
+data_urban$residuals = data_urban$PM10 - Seasonality(urban_fit$x, data_urban$Date)
+# BOX-COX TRANSFORMATION unica per tutte le stazioni
+intermediate = powerTransform(data_urban$residuals~1, family = "bcnPower")
+data_urban$res_BC = bcnPower(data_urban$residuals, intermediate$lambda, gamma=intermediate$gamma)
+
+dati_BC = xtabs(res_BC ~ Date + Station, data=data_urban)
+dati_BC = as.data.frame.matrix(dati_BC)
+staz = which(colSums(dati_BC) != 0)
+dati_BC = dati_BC[,staz]
+
+matplot(dati_BC, type='l') 
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0, dim(dati_BC)[2])
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main="QQ norm", col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 17 normal
+#           6 not-normal
+dev.off()
