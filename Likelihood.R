@@ -256,8 +256,12 @@ matplot(dati_norm, type='l') # non c'è abbastanza detrend
 
 # BOX-COX TRANSFORMATION for each station
 BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+parameters = cbind(rep(0, dim(dati_norm)[2]), rep(0, dim(dati_norm)[2]))
+colnames(parameters) = c('Lambda', 'Gamma')
 for (i in 1:dim(dati_norm)[2]){
   intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
+  parameters[i, 1] = intermediate$lambda
+  parameters[i, 2] = intermediate$gamma
   BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
 }
 matplot(BC_data, type='l') 
@@ -303,8 +307,12 @@ matplot(dati_norm, type='l') # non abbastanza detrend
 
 # BOX-COX TRANSFORMATION for each station
 BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+parameters = cbind(rep(0, dim(dati_norm)[2]), rep(0, dim(dati_norm)[2]))
+colnames(parameters) = c('Lambda', 'Gamma')
 for (i in 1:dim(dati_norm)[2]){
   intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
+  parameters[i, 1] = intermediate$lambda
+  parameters[i, 2] = intermediate$gamma
   BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
 }
 matplot(BC_data, type='l') 
@@ -349,8 +357,12 @@ matplot(dati_norm, type='l') # non abbastanza detrend
 
 # BOX-COX TRANSFORMATION for each station
 BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+parameters = cbind(rep(0, dim(dati_norm)[2]), rep(0, dim(dati_norm)[2]))
+colnames(parameters) = c('Lambda', 'Gamma')
 for (i in 1:dim(dati_norm)[2]){
   intermediate = powerTransform(dati_norm[ ,i]~1, family = "bcnPower")
+  parameters[i, 1] = intermediate$lambda
+  parameters[i, 2] = intermediate$gamma
   BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
 }
 matplot(BC_data, type='l')
