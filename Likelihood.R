@@ -452,7 +452,7 @@ par(mfrow=c(4,4))
 for (i in 1:dim(dati_BC)[2]){
   shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i])
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
 }
 as.data.frame(shapiro_BC)
 # QQ-Plot
@@ -490,13 +490,52 @@ par(mfrow=c(5,5))
 for (i in 1:dim(dati_BC)[2]){
   shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i])
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
 }
-savePlot(filename = "urban_hist.png", type='png')
 as.data.frame(shapiro_BC)
 # QQ-Plot
 x11()
 par(mfrow=c(5,5))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 17 normal
+#           6 not-normal
+dev.off()
+
+
+
+# --- URBAN + SUBURBAN ---
+data = rbind(data_suburban, data_urban)
+param = (urban_fit$x + suburban_fit$x)/2
+data$residuals = data$PM10 - Seasonality(param, data$Date)
+# BOX-COX TRANSFORMATION unica per tutte le stazioni
+intermediate = powerTransform(data$residuals~1, family = "bcnPower")
+data$res_BC = bcnPower(data$residuals, intermediate$lambda, gamma=intermediate$gamma)
+
+dati_BC = xtabs(res_BC ~ Date + Station, data=data)
+dati_BC = as.data.frame.matrix(dati_BC)
+staz = which(colSums(dati_BC) != 0)
+dati_BC = dati_BC[,staz]
+
+matplot(dati_BC, type='l') 
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0, dim(dati_BC)[2])
+x11()
+par(mfrow=c(6,7))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(8,5))
 for (i in 1:dim(dati_BC)[2]){
   norm_col = (shapiro_BC[i] > 0.05) +2
   qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)

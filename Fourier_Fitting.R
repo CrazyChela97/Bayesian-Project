@@ -399,6 +399,132 @@ dev.off()
 
 
 
+
+
+
+# BOX COX - unico parametro -----
+
+# --- RURAL ---
+ft_rural = rurale.fd.media
+dati_per_stazione = PM10_data.stazione_rurale
+
+f_t_mat = t(repmat(ft_rural, dim(dati_per_stazione)[2], 1))
+dati_norm = dati_per_stazione - f_t_mat
+
+BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+intermediate = powerTransform(as.vector(unlist(dati_norm))~1, family = "bcnPower")
+for (i in 1:dim(dati_norm)[2]){
+  BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l')
+intermediate$lambda
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0, dim(dati_norm)[2])
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_norm)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(dati_norm)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 5 normal
+#           4 not normal
+dev.off()
+
+
+
+# --- SUBURBAN ---
+ft_suburban = suburbano.fd.media
+dati_per_stazione = PM10_data.stazione_suburbano
+
+f_t_mat = t(repmat(ft_suburban, dim(dati_per_stazione)[2], 1))
+dati_norm = dati_per_stazione - f_t_mat
+
+BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+intermediate = powerTransform(as.vector(unlist(dati_norm))~1, family = "bcnPower")
+for (i in 1:dim(dati_norm)[2]){
+  BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l')
+intermediate$lambda
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0, dim(dati_norm)[2])
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(dati_norm)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(dati_norm)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 11 normal
+#           3 not normal
+dev.off()
+
+
+
+# --- URBAN ---
+ft_urban = urbano.fd.media
+dati_per_stazione = PM10_data.stazione_urbano
+
+f_t_mat = t(repmat(ft_urban, dim(dati_per_stazione)[2], 1))
+dati_norm = dati_per_stazione - f_t_mat
+
+BC_data = matrix(data=NA, nrow=dim(dati_norm)[1], ncol=dim(dati_norm)[2])
+intermediate = powerTransform(as.vector(unlist(dati_norm))~1, family = "bcnPower")
+for (i in 1:dim(dati_norm)[2]){
+  BC_data[,i] = bcnPower(dati_norm[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l')
+intermediate$lambda
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0, dim(dati_norm)[2])
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(dati_norm)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(dati_norm)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 17 normal
+#           6 not normal
+dev.off()
+
+
+
+
 # Comparison other years --------------------------------------------------
 
 #2019
