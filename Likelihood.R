@@ -410,19 +410,19 @@ matplot(dati_BC, type='l')
 # Shapiro test + histogram
 shapiro_BC = rep(0, dim(dati_BC)[2])
 x11()
-par(mfrow=c(3,4))
+par(mfrow=c(4,3))
 for (i in 1:dim(dati_BC)[2]){
   shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(dati_BC[,i], col=norm_col)
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
 }
 as.data.frame(shapiro_BC)
 # QQ-Plot
 x11()
-par(mfrow=c(3,4))
+par(mfrow=c(4,3))
 for (i in 1:dim(dati_BC)[2]){
   norm_col = (shapiro_BC[i] > 0.05) +2
-  qqnorm(dati_BC[,i], main="QQ norm", col=norm_col)
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
   qqline(dati_BC[,i])
 }
 # SUMMARY : 5 normal
@@ -452,7 +452,7 @@ par(mfrow=c(4,4))
 for (i in 1:dim(dati_BC)[2]){
   shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(dati_BC[,i], col=norm_col)
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i])
 }
 as.data.frame(shapiro_BC)
 # QQ-Plot
@@ -460,7 +460,7 @@ x11()
 par(mfrow=c(4,4))
 for (i in 1:dim(dati_BC)[2]){
   norm_col = (shapiro_BC[i] > 0.05) +2
-  qqnorm(dati_BC[,i], main="QQ norm", col=norm_col)
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
   qqline(dati_BC[,i])
 }
 # SUMMARY : 9 normal
@@ -490,15 +490,16 @@ par(mfrow=c(5,5))
 for (i in 1:dim(dati_BC)[2]){
   shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(dati_BC[,i], col=norm_col)
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i])
 }
+savePlot(filename = "urban_hist.png", type='png')
 as.data.frame(shapiro_BC)
 # QQ-Plot
 x11()
 par(mfrow=c(5,5))
 for (i in 1:dim(dati_BC)[2]){
   norm_col = (shapiro_BC[i] > 0.05) +2
-  qqnorm(dati_BC[,i], main="QQ norm", col=norm_col)
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
   qqline(dati_BC[,i])
 }
 # SUMMARY : 17 normal
