@@ -439,7 +439,7 @@ for (i in 1:dim(dati_norm)[2]){
   qqline(BC_data[,i])
 }
 # SUMMARY : 5 normal
-#           4 not normal
+#           7 not normal
 dev.off()
 
 

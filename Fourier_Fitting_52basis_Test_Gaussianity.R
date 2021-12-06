@@ -152,7 +152,7 @@ x11()
 ggplot(Rurale_mean.ggplot,aes(x=Date, y=Mean)) +
   geom_line(aes(color="Rural Mean"), size=0.4, alpha=0.9, linetype=2) +
   geom_line(data=rurale.fd.media.ggplot,aes(color="Interpolation"),size=1) +
-  ggtitle("Fourier Basis of Rural PM10 Mean") +
+  ggtitle("52 Fourier Basis of Rural PM10 Mean") +
   theme_ipsum() +
   labs(x = "Date",
        y = "PM10 Concentration",
@@ -208,7 +208,7 @@ x11()
 ggplot(Suburbano_mean.ggplot,aes(x=Date, y=Mean)) +
   geom_line(aes(color="Suburban Mean"), size=0.4, alpha=0.9, linetype=2) +
   geom_line(data=suburbano.fd.media.ggplot,aes(color="Interpolation"),size=1) +
-  ggtitle("Fourier Basis of Suburban PM10 Mean") +
+  ggtitle("52 Fourier Basis of Suburban PM10 Mean") +
   theme_ipsum() +
   labs(x = "Date",
        y = "PM10 Concentration",
@@ -264,7 +264,7 @@ x11()
 ggplot(Urbano_mean.ggplot,aes(x=Date, y=Mean)) +
   geom_line(aes(color="Urban Mean"), size=0.4, alpha=0.9, linetype=2) +
   geom_line(data=urbano.fd.media.ggplot,aes(color="Interpolation"),size=1) +
-  ggtitle("Fourier Basis of Urban PM10 Mean") +
+  ggtitle("52 Fourier Basis of Urban PM10 Mean") +
   theme_ipsum() +
   labs(x = "Date",
        y = "PM10 Concentration",
@@ -314,11 +314,263 @@ lines(Sub_Urb_mean,type="l",lty=2)
 #f(t) mean
 shapiro_rurale=PM10_data.stazione_rurale-rurale.fd.media
 
+# BOX-COX TRANSFORMATION for each station
+BC_data = matrix(data=NA, nrow=dim(shapiro_rurale)[1], ncol=dim(shapiro_rurale)[2])
+for (i in 1:dim(shapiro_rurale)[2]){
+  intermediate = powerTransform(shapiro_rurale[ ,i]~1, family = "bcnPower")
+  BC_data[,i] = bcnPower(shapiro_rurale[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l') 
+
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0,12)
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(shapiro_rurale)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(shapiro_rurale)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 12 normal
+#           
+dev.off()
+
+
+
+
+
+
 shapiro_urbano=PM10_data.stazione_urbano-urbano.fd.media
+
+# BOX-COX TRANSFORMATION for each station
+BC_data = matrix(data=NA, nrow=dim(shapiro_urbano)[1], ncol=dim(shapiro_urbano)[2])
+for (i in 1:dim(shapiro_urbano)[2]){
+  intermediate = powerTransform(shapiro_urbano[ ,i]~1, family = "bcnPower")
+  BC_data[,i] = bcnPower(shapiro_urbano[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l') 
+
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0,23)
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(shapiro_urbano)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(shapiro_urbano)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 23 normal
+#           
+dev.off()
+
+
 
 shapiro_suburbano=PM10_data.stazione_suburbano-suburbano.fd.media
 
+# BOX-COX TRANSFORMATION for each station
+BC_data = matrix(data=NA, nrow=dim(shapiro_suburbano)[1], ncol=dim(shapiro_suburbano)[2])
+for (i in 1:dim(shapiro_suburbano)[2]){
+  intermediate = powerTransform(shapiro_suburbano[ ,i]~1, family = "bcnPower")
+  BC_data[,i] = bcnPower(shapiro_suburbano[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l') 
+
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0,14)
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(shapiro_suburbano)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(shapiro_suburbano)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 14 normal
+#           
+dev.off()
+
+
+
 shapiro_sub_urbano=PM10_data.stazione_sub_urb-sub_urbano.fd.media
+
+# BOX-COX TRANSFORMATION for each station
+BC_data = matrix(data=NA, nrow=dim(shapiro_sub_urbano)[1], ncol=dim(shapiro_sub_urbano)[2])
+for (i in 1:dim(shapiro_sub_urbano)[2]){
+  intermediate = powerTransform(shapiro_sub_urbano[ ,i]~1, family = "bcnPower")
+  BC_data[,i] = bcnPower(shapiro_sub_urbano[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l') 
+
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0,37)
+x11()
+par(mfrow=c(5,8))
+for (i in 1:dim(shapiro_sub_urbano)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(5,8))
+for (i in 1:dim(shapiro_sub_urbano)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 36 su 37 normal
+#           
+dev.off()
+
+
+# BOX COX - unico parametro -----
+
+shapiro_rurale=PM10_data.stazione_rurale-rurale.fd.media
+
+BC_data = matrix(data=NA, nrow=dim(shapiro_rurale)[1], ncol=dim(shapiro_rurale)[2])
+intermediate = powerTransform(as.vector(unlist(shapiro_rurale))~1, family = "bcnPower")
+for (i in 1:dim(shapiro_rurale)[2]){
+  BC_data[,i] = bcnPower(shapiro_rurale[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l')
+intermediate$lambda
+
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0,12)
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(shapiro_rurale)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col, main = colnames(shapiro_rurale)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(shapiro_rurale)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main = colnames(shapiro_rurale)[i], col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 4 normal
+#           8 not normal
+dev.off()
+
+
+
+shapiro_urbano=PM10_data.stazione_urbano-urbano.fd.media
+
+BC_data = matrix(data=NA, nrow=dim(shapiro_urbano)[1], ncol=dim(shapiro_urbano)[2])
+intermediate = powerTransform(as.vector(unlist(shapiro_urbano))~1, family = "bcnPower")
+for (i in 1:dim(shapiro_urbano)[2]){
+  BC_data[,i] = bcnPower(shapiro_urbano[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l')
+intermediate$lambda
+
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0,23)
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(shapiro_urbano)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col, main = colnames(shapiro_urbano)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(5,5))
+for (i in 1:dim(shapiro_urbano)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main = colnames(shapiro_urbano)[i], col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 16 normal
+#           7 not normal       
+dev.off()
+
+
+shapiro_suburbano=PM10_data.stazione_suburbano-suburbano.fd.media
+
+BC_data = matrix(data=NA, nrow=dim(shapiro_suburbano)[1], ncol=dim(shapiro_suburbano)[2])
+intermediate = powerTransform(as.vector(unlist(shapiro_suburbano))~1, family = "bcnPower")
+for (i in 1:dim(shapiro_suburbano)[2]){
+  BC_data[,i] = bcnPower(shapiro_suburbano[ ,i], intermediate$lambda, gamma=intermediate$gamma)
+}
+matplot(BC_data, type='l')
+intermediate$lambda
+
+
+# NORMALITY CHECK
+# Shapiro test + histogram
+shapiro_BC = rep(0,14)
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(shapiro_suburbano)[2]){
+  shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(BC_data[,i], col=norm_col, main = colnames(shapiro_suburbano)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(4,4))
+for (i in 1:dim(shapiro_suburbano)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(BC_data[,i], main = colnames(shapiro_suburbano)[i], col=norm_col)
+  qqline(BC_data[,i])
+}
+# SUMMARY : 9 normal
+#           5 not normal     
+dev.off()
+
+
+
+
+
+
+
 
 
 
