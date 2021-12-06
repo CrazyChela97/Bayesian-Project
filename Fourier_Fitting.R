@@ -136,6 +136,7 @@ matlines(Rurale_mean,lwd=3)
 Rurale_mean[365]=mean(Stazioni_mean_rurale)
 Xsp.media <- smooth.basis(argvals=giorni, y=Rurale_mean, fdParobj=basis)
 rurale.fd.media <- eval.fd(giorni, Xsp.media$fd)
+Xsp.media$fd$coefs
 
 x11()
 plot(giorni, rurale.fd.media, xlim=c(1,364), ylim=c(2,51), type="l",col = "red",lwd=2)
@@ -419,6 +420,21 @@ for (i in 1:dim(dati_norm)[2]){
 matplot(BC_data, type='l')
 intermediate$lambda
 
+# General overview
+all_BC = as.vector(unlist(BC_data))
+all_data = as.vector(unlist(dati_norm))
+
+quartz()
+par(mfrow=c(2,3))
+hist(all_data, main='Histogram', col='gray')
+qqnorm(all_data, main = 'QQ norm')
+qqline(all_data)
+boxplot(all_data, main='BoxPlot')
+hist(all_BC, main='Histogram', col='gray')
+qqnorm(all_BC, main='QQ norm')
+qqline(all_BC)
+boxplot(all_BC, main='BoxPlot')
+
 # NORMALITY CHECK
 # Shapiro test + histogram
 shapiro_BC = rep(0, dim(dati_norm)[2])
@@ -427,15 +443,15 @@ par(mfrow=c(3,4))
 for (i in 1:dim(dati_norm)[2]){
   shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(BC_data[,i], col=norm_col)
+  hist(BC_data[,i], col=norm_col, main = colnames(dati_norm)[i], sub= shapiro_BC[i], col.sub=norm_col)
 }
 as.data.frame(shapiro_BC)
 # QQ-Plot
 x11()
-par(mfrow=c(4,4))
+par(mfrow=c(3,4))
 for (i in 1:dim(dati_norm)[2]){
   norm_col = (shapiro_BC[i] > 0.05) +2
-  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqnorm(BC_data[,i], main = colnames(dati_norm)[i], col=norm_col)
   qqline(BC_data[,i])
 }
 # SUMMARY : 5 normal
@@ -459,6 +475,21 @@ for (i in 1:dim(dati_norm)[2]){
 matplot(BC_data, type='l')
 intermediate$lambda
 
+# General overview
+all_BC = as.vector(unlist(BC_data))
+all_data = as.vector(unlist(dati_norm))
+
+quartz()
+par(mfrow=c(2,3))
+hist(all_data, main='Histogram', col='gray')
+qqnorm(all_data, main = 'QQ norm')
+qqline(all_data)
+boxplot(all_data, main='BoxPlot')
+hist(all_BC, main='Histogram', col='gray')
+qqnorm(all_BC, main='QQ norm')
+qqline(all_BC)
+boxplot(all_BC, main='BoxPlot')
+
 # NORMALITY CHECK
 # Shapiro test + histogram
 shapiro_BC = rep(0, dim(dati_norm)[2])
@@ -467,7 +498,7 @@ par(mfrow=c(4,4))
 for (i in 1:dim(dati_norm)[2]){
   shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(BC_data[,i], col=norm_col)
+  hist(BC_data[,i], col=norm_col,  main = colnames(dati_norm)[i], sub= shapiro_BC[i], col.sub=norm_col)
 }
 as.data.frame(shapiro_BC)
 # QQ-Plot
@@ -475,7 +506,7 @@ x11()
 par(mfrow=c(4,4))
 for (i in 1:dim(dati_norm)[2]){
   norm_col = (shapiro_BC[i] > 0.05) +2
-  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqnorm(BC_data[,i], main = colnames(dati_norm)[i], col=norm_col)
   qqline(BC_data[,i])
 }
 # SUMMARY : 11 normal
@@ -499,6 +530,23 @@ for (i in 1:dim(dati_norm)[2]){
 matplot(BC_data, type='l')
 intermediate$lambda
 
+
+# General overview
+all_BC = as.vector(unlist(BC_data))
+all_data = as.vector(unlist(dati_norm))
+
+quartz()
+par(mfrow=c(2,3))
+hist(all_data, main='Histogram', col='gray')
+qqnorm(all_data, main = 'QQ norm')
+qqline(all_data)
+boxplot(all_data, main='BoxPlot')
+hist(all_BC, main='Histogram', col='gray')
+qqnorm(all_BC, main='QQ norm')
+qqline(all_BC)
+boxplot(all_BC, main='BoxPlot')
+
+
 # NORMALITY CHECK
 # Shapiro test + histogram
 shapiro_BC = rep(0, dim(dati_norm)[2])
@@ -507,7 +555,7 @@ par(mfrow=c(5,5))
 for (i in 1:dim(dati_norm)[2]){
   shapiro_BC[i] = shapiro.test(BC_data[,i])$p.value
   norm_col = (shapiro_BC[i] > 0.05) +2
-  hist(BC_data[,i], col=norm_col)
+  hist(BC_data[,i], col=norm_col, main = colnames(dati_norm)[i], sub= shapiro_BC[i], col.sub=norm_col)
 }
 as.data.frame(shapiro_BC)
 # QQ-Plot
@@ -515,7 +563,7 @@ x11()
 par(mfrow=c(5,5))
 for (i in 1:dim(dati_norm)[2]){
   norm_col = (shapiro_BC[i] > 0.05) +2
-  qqnorm(BC_data[,i], main="QQ norm", col=norm_col)
+  qqnorm(BC_data[,i], main = colnames(dati_norm)[i], col=norm_col)
   qqline(BC_data[,i])
 }
 # SUMMARY : 17 normal
