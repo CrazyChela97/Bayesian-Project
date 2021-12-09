@@ -131,6 +131,9 @@ trans_rural$Res = trans_rural$Valore - ft
 
 model = lm(Res ~ Tipo+Zonizzazione+Quota+Provincia, data=trans_rural)
 summary(model)
+
+model = lm(Valore ~ ft+Tipo+Zonizzazione+Quota+Provincia, data=trans_rural)
+summary(model)
 # tutti significativi
 
 
@@ -222,6 +225,9 @@ ft = Seasonality(us_fit$x, trans_us$Data)
 trans_us$Res = trans_us$Valore - ft
 
 model = lm(Res ~ Tipo+Zonizzazione+Quota+Provincia, data=trans_us)
+summary(model)
+
+model = lm(Valore ~ ft+Tipo+Zonizzazione+Quota+Provincia, data=trans_us)
 summary(model)
 # tutti significativi
 
