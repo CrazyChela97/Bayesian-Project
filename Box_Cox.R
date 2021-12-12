@@ -315,6 +315,283 @@ dev.off()
 # FOURIER FITTING ( 4 basis ) -------------------------------------------
 
 
+#fit
+#interpolazione sulla media
+
+# dates = as.factor(seq.Date(as.Date("2018-01-01"), length.out = 365, by = "day"))
+# PM10_data.stazione_rurale = as.data.frame(dates)
+# for(i in 2:(dim(Rurale)[1]+1)){
+#   v_s = PM10_2018[which(PM10_2018$NS==Rurale$Stazioni[i-1]),] 
+#   Totale_mean_rurale = mean(v_s$Valore,na.rm = TRUE)
+#   pos = match(PM10_data.stazione_rurale$dates,as.factor(v_s$Data))
+#   PM10_data.stazione_rurale[i] = v_s$Valore[pos]
+# }
+# colnames(PM10_data.stazione_rurale) = c("Date",as.character(Rurale$Stazioni))
+# PM10_data.stazione_rurale$Date = as.Date(PM10_data.stazione_rurale$Date)
+
+
+
+#rurale
+PM10_data.stazione_rurale = mean_rural[,-1]
+
+#eliminazione NA
+# for(i in 1:dim(Rurale)[1]){
+#   for(j in 1:dim(PM10_data.stazione_rurale)[1]){
+#     if(is.na(PM10_data.stazione_rurale[j,i]))
+#       PM10_data.stazione_rurale[j,i] = Stazioni_mean_rurale[i]
+#   }
+# }
+
+giorni=1:364
+basis <- create.fourier.basis(rangeval=c(1,365),nbasis=4)
+Xsp <- smooth.basis(argvals=giorni, y=as.matrix(PM10_data.stazione_rurale), fdParobj=basis)
+rurale.fd.media <- Data2fd(y = as.matrix(PM10_data.stazione_rurale),argvals = giorni,basisobj = basis)
+
+rurale.fd.media
+
+#plot
+x11()
+par(mfrow=c(1,2))
+plot.fd(rurale.fd.media)
+matplot(giorni,as.matrix(PM10_data.stazione_rurale),type="l")
+matlines(Rurale_mean,lwd=3)
+
+
+
+
+# PLOTS
+# Plot of the values of PM10 divided by zone type and plot of the fitted value 
+ra_fit <- ggplot(data_rural,aes(x=Date, y=BC_trans, col=Station)) +
+  geom_line() + 
+  scale_color_manual(values=terrain.colors(50)[1:12]) +
+  geom_line(data = mean_rural, aes(x=Date, y=Seasonality(rural_fit$x,Date)), col = "darkred", size=1) +
+  ylim(c(0,6)) +
+  labs(title="PM10-Emilia: RURAL AREA") +
+  theme(legend.position="none") 
+
+usa_fit <- ggplot(data_us,aes(x=Date, y=BC_trans, col=Station)) +
+  geom_line() + 
+  scale_color_manual(values=terrain.colors(50)[13:50]) +
+  geom_line(data = mean_us, aes(x=Date, y=Seasonality(us_fit$x,Date)), col = "darkred", size=1) +
+  ylim(c(0,6)) +
+  labs(title="PM10-Emilia: SUBURBAN & URBAN AREA") +
+  theme(legend.position="none") 
+
+grid.arrange(ra_fit, usa_fit, ncol=2)
+
+
+
+
+fun =  function(xdata, valorifittati){
+  
+  data = as.Date(xdata, origin = "1970-01-01")
+  numeric_date=as.POSIXlt(data, format="%m/%d/%Y")$yday  # returns the number of the day in the year
+  
+  valori=numeric(length(numeric_date))
+  #magheggio
+  numeric_date=numeric_date+1
+  numeric_date[which(numeric_date==365)]=364
+  
+  
+  for (i in 1: length(valori)){
+    valori[i]=valorifittati[numeric_date[i]]
+  }
+  
+  valori
+  
+}
+
+# RESIDUALS ANALYSIS
+trans_data = PM10[which(PM10$Anno==2018), -c(1,5,6,7,8)]
+trans_data$Valore = bcnPower(trans_data$Valore, intermediate$lambda, gamma=intermediate$gamma)
+
+# # # RURAL DATA # # #
+trans_rural = trans_data[trans_data$Area == 'Rurale', ]
+ft = fun(trans_rural$Data, Xsp$y)
+trans_rural$Res = trans_rural$Valore - ft
+
+model = lm(Res ~ Tipo+Zonizzazione+Quota+Provincia, data=trans_rural)
+summary(model)
+# provincia FC unica a NON essere significativa
+
+
+# ANALISI DATI PER STAZIONE
+dati_per_stazione = xtabs(Valore ~ Data + NomeStazione, data=trans_rural)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+# tolgo zeri dati da xtabs
+for(i in 1:dim(dati_per_stazione)[2]){
+  for(j in 1:dim(dati_per_stazione)[1]){
+    if(dati_per_stazione[j,i] == 0)
+      dati_per_stazione[j,i] = colMeans(dati_per_stazione)[i]
+  }
+}
+
+x11()
+matplot(dati_per_stazione, type='l') 
+
+# NORMALITY CHECK : Transformed Data
+# Shapiro test + histogram
+dati_BC= dati_per_stazione
+shapiro_BC = rep(0,dim(dati_BC)[2])
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 3 normal
+#           9 not-normal  (5%)
+dev.off()
+
+
+# ANALISI RESIDUI PER STAZIONE
+dati_per_stazione = xtabs(Res ~ Data + NomeStazione, data=trans_rural)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+# tolgo zeri dati da xtabs
+for(i in 1:dim(dati_per_stazione)[2]){
+  for(j in 1:dim(dati_per_stazione)[1]){
+    if(dati_per_stazione[j,i] == 0)
+      dati_per_stazione[j,i] = colMeans(dati_per_stazione)[i]
+  }
+}
+x11()
+matplot(dati_per_stazione, type='l') 
+
+# NORMALITY CHECK : Residuals
+# Shapiro test + histogram
+dati_BC= dati_per_stazione
+shapiro_BC = rep(0,dim(dati_BC)[2])
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 0 normal
+#           12 not-normal
+dev.off()
+
+
+#URBANO & SUBURBANO 
+
+trans_su = trans_data[trans_data$Area == 'Urbano' | trans_data$Area == 'Suburbano', ]
+ftsu = fun(trans_su$Data, Xsp$y)
+trans_su$Res = trans_su$Valore - ftsu
+
+model = lm(Res ~ Tipo+Zonizzazione+Quota+Provincia, data=trans_su)
+summary(model)
+# provincia MO unica a NON essere significativa (0.1)
+
+
+# ANALISI DATI PER STAZIONE
+dati_per_stazione = xtabs(Valore ~ Data + NomeStazione, data=trans_su)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+# tolgo zeri dati da xtabs
+for(i in 1:dim(dati_per_stazione)[2]){
+  for(j in 1:dim(dati_per_stazione)[1]){
+    if(dati_per_stazione[j,i] == 0)
+      dati_per_stazione[j,i] = colMeans(dati_per_stazione)[i]
+  }
+}
+
+x11()
+matplot(dati_per_stazione, type='l') 
+
+# NORMALITY CHECK : Transformed Data
+# Shapiro test + histogram
+dati_BC= dati_per_stazione
+shapiro_BC = rep(0,dim(dati_BC)[2])
+x11()
+par(mfrow=c(5,8))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 13 normal
+#           24 not-normal  (5%)
+dev.off()
+
+
+# ANALISI RESIDUI PER STAZIONE
+dati_per_stazione = xtabs(Res ~ Data + NomeStazione, data=trans_su)
+dati_per_stazione = as.data.frame.matrix(dati_per_stazione)
+staz = which(colSums(dati_per_stazione) != 0)
+dati_per_stazione = dati_per_stazione[,staz]
+# tolgo zeri dati da xtabs
+for(i in 1:dim(dati_per_stazione)[2]){
+  for(j in 1:dim(dati_per_stazione)[1]){
+    if(dati_per_stazione[j,i] == 0)
+      dati_per_stazione[j,i] = colMeans(dati_per_stazione)[i]
+  }
+}
+x11()
+matplot(dati_per_stazione, type='l') 
+
+# NORMALITY CHECK : Residuals
+# Shapiro test + histogram
+dati_BC= dati_per_stazione
+shapiro_BC = rep(0,dim(dati_BC)[2])
+x11()
+par(mfrow=c(5,8))
+for (i in 1:dim(dati_BC)[2]){
+  shapiro_BC[i] = shapiro.test(dati_BC[,i])$p.value
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  hist(dati_BC[,i], col=norm_col, main = colnames(dati_BC)[i], sub= shapiro_BC[i], col.sub=norm_col)
+}
+as.data.frame(shapiro_BC)
+# QQ-Plot
+x11()
+par(mfrow=c(3,4))
+for (i in 1:dim(dati_BC)[2]){
+  norm_col = (shapiro_BC[i] > 0.05) +2
+  qqnorm(dati_BC[,i], main = colnames(dati_BC)[i], col=norm_col)
+  qqline(dati_BC[,i])
+}
+# SUMMARY : 0 normal
+#           37 not-normal
+dev.off()
+
+
+
+
+
+
 # FOURIER FITTING ( 8 basis) ----------------------------------------------
 
 
