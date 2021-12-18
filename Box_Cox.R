@@ -17,6 +17,7 @@ library(pracma)
 library(lubridate)
 library(car) 
 
+
 # Load data + BC transformation ---------------------------------------------------------------
 PM10 = read_csv('Data/PM10_Emilia.csv')
 
@@ -69,6 +70,22 @@ data_us = data_long[which(data_long$Zona=="Suburbano" | data_long$Zona=="Urbano"
 mean_us = aggregate(data_us$BC_trans, FUN=mean, by=list(data_us$Date))
 colnames(mean_us) = c("Date", "MeanValue")
 
+
+# SAVING DATASET FOR PYTHON -------------------------------------------
+py_data = data_long[,c(1,5)]
+colnames(py_data) = c('Date', 'Y_bc')
+r = rep(0, dim(py_data)[1])
+r[which(data_long$Zona=='Rurale')] = 1
+py_data$Rural = r
+py_data$Time = as.POSIXlt(py_data$Date, format="%m/%d/%Y")$yday 
+py_data$NS = data_long$Station
+index = match(py_data$NS,PM10$NomeStazione)
+py_data$quota = PM10$Quota[index]
+py_data$Provincia = PM10$Provincia[index]
+py_data$Zonizzazione = PM10$Zonizzazione[index]
+py_data$Tipo = PM10$Tipo[index]
+
+write.csv(py_data, 'Py_Dataset.csv')
 
 
 
