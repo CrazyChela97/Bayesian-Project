@@ -21,6 +21,7 @@ library(fda)
 
 # Load data + BC transformation ---------------------------------------------------------------
 PM10 = read_csv('Data/PM10_Emilia.csv')
+PM10$Quota = scale(PM10$Quota, center = TRUE, scale = TRUE)
 
 PM10_2018 = PM10[which(PM10$Anno==2018),c(2,3,4,9,10,11,12)]
 colnames(PM10_2018) = c("Data","NS","Valore","Provincia","Tipo","Area","Zonizzazione")
@@ -77,7 +78,7 @@ colnames(mean_us) = c("Date", "MeanValue")
 # DATASET CREATION FOR PYTHON ---------------------------------------------
 
 py_data = data_long[,c(1,5)]
-colnames(py_data) = c('Date', 'Y_bc')
+colnames(py_data) = c('Date', 'Y_log')
 r = rep(0, dim(py_data)[1])
 r[which(data_long$Zona=='Rurale')] = 1
 py_data$Rural = r
