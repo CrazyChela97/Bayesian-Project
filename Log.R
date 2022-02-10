@@ -707,14 +707,21 @@ dev.off()
 # FOURIER FITTING ( 12 basis) ----------------------------------------------
 
 #FITTING
-#rural
+
 giorni=1:364
 basis <- create.fourier.basis(rangeval=c(1,364),nbasis=12)
+plot(basis) # range: [-0.07, +0.07]
+abline(h=c(0.07,-0.07))
+#rural
 rural.smooth <- smooth.basis(argvals=giorni, y=mean_rural$MeanValue, fdParobj=basis)
 rurale.fd.media <- eval.fd(giorni, rural.smooth$fd)
+rural.smooth$fd$coefs * 0.07
+rural.smooth$fd$coefs[1] * 0.055
 #sub/urban
 sub_urb.smooth <- smooth.basis(argvals=giorni, y=mean_us$MeanValue, fdParobj=basis)
 sub_urb.fd.media <- eval.fd(giorni, sub_urb.smooth$fd)
+sub_urb.smooth$fd$coefs * 0.07
+sub_urb.smooth$fd$coefs[1] * 0.055
 
 # PLOTS
 # Plot of the values of PM10 divided by zone type and plot of the fitted value 
