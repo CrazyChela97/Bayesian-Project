@@ -26,7 +26,7 @@ library(lubridate)
 
 # Importazione dei dati ---------------------------------------------------
 
-PM10_raw <- read_excel("Data/Base PM10 2014-2019.xlsx")
+PM10_raw <- read_excel("../Data/Base PM10 2014-2019.xlsx")
 PM10_raw$Data = as.Date(PM10_raw$Data)
 PM10_raw$AreaStazione=as.factor(PM10_raw$AreaStazione)
 PM10_raw$TipoStazione=as.factor(PM10_raw$TipoStazione)
@@ -75,13 +75,9 @@ PM10$`Asti - D'Acquisto`[which(PM10$Data=='2014-01-01')]
 # xtabs fa la somma: no bueno --> proviamo a fare la media
 # COSA FA ?
 nobs_per_day = as.matrix(daily_obs)
-write.csv(nobs_per_day, file='Data/nobs.csv')
-nobs_per_day <- read_csv("Data/nobs.csv")
+write.csv(nobs_per_day, file='nobs.csv')
+nobs_per_day <- read_csv("nobs.csv")
 names(nobs_per_day)[1] = 'Data'
-prova = PM10[,-1]/nobs_per_day[,-1]
-prova[is.na(prova)] = 0
-prova = add_column(prova, nobs_per_day$Data, .before=1)
-
 
 ## pie chart of additional variables
 
@@ -152,24 +148,6 @@ View(PM10_valuecol)
 
 # Grafici esplorativi -----------------------------------------------------
 
-# plot dati iniziali
-matplot(PM10_raw[,-1], type='l')
-# functional data con pacchetto roahd
-l = dim(PM10_raw)[1]
-data_fun = fData(1:l, t(PM10_raw[, -1]))
-plot(data_fun)
-
-
-# plot dati puliti
-plot.new()
-matplot(dati_clean[,-1], type='l')
-# functional data con pacchetto roahd
-l = dim(dati_clean)[1]
-data_fun = fData(1:l, t(dati_clean[, -1]))
-plot(data_fun)
-
-
-
 don <- xts(x = PM10_raw$Valore[which(PM10_raw$NomeStazione=="Adria")], order.by = PM10_raw$Data[which(PM10_raw$NomeStazione=="Adria")])
 # Finally the plot
 p <- dygraph(don) %>%
@@ -180,9 +158,6 @@ p <- dygraph(don) %>%
   dyRoller(rollPeriod = 1)
 
 p
-
-
-# prova 1234
 
 
 

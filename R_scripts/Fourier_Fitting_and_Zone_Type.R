@@ -33,7 +33,7 @@ library(reshape)
 
 # Dataset Creation --------------------------------------------------------
 
-PM10 = read_csv('Data/PM10_Emilia.csv')
+PM10 = read_csv('../Data/PM10_Emilia.csv')
 PM10$Quota = scale(PM10$Quota, center = TRUE, scale = TRUE)
 View(PM10)
 

@@ -1,5 +1,5 @@
 ###########################################################################
-#                         MODELLO EMILIA 2018                             #
+#                         SEASONALITY FITTING                             #
 ###########################################################################
 
 current_path = rstudioapi::getActiveDocumentContext()$path 
@@ -18,7 +18,7 @@ library(lubridate)
 library(car) 
 
 # Load data ---------------------------------------------------------------
-PM10 = read_csv('Data/PM10_Emilia.csv')
+PM10 = read_csv('../Data/PM10_Emilia.csv')
 
 PM10_2018 = PM10[which(PM10$Anno==2018),c(2,3,4,9,10,11,12)]
 colnames(PM10_2018) = c("Data","NS","Valore","Provincia","Tipo","Area","Zonizzazione")

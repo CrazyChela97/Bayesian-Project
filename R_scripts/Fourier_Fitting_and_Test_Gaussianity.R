@@ -33,7 +33,7 @@ library(fdakma) #KMA (FDA)
 
 # Functional dataset ------------------------------------------------------
 
-PM10 = read_csv('Data/PM10_Emilia.csv')
+PM10 = read_csv('../Data/PM10_Emilia.csv')
 View(PM10)
 
 PM10_2018 = PM10[which(PM10$Anno==2018),c(2,3,4,8,9,11,13)]

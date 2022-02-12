@@ -18,7 +18,7 @@ library(roahd)
 
 # LOMBARDIA ---------------------------------------------------------------
 
-PM10_Lombardia = read_csv('all_PM10_lomb.csv')
+PM10_Lombardia = read_csv('../Data/all_PM10_lomb.csv')
 # 2020 Data not considered
 PM10_Lombardia = PM10_Lombardia[which(PM10_Lombardia$Anno!="2020"), ]
 
@@ -93,8 +93,8 @@ rm(list = ls())
 
 # EMILIA ------------------------------------------------------------------
 
-PM10_Emilia = read_excel('all_PM10_emilia.xlsx')
-meta_emilia = read_excel('all_PM10_emilia.xlsx', sheet = 2)
+PM10_Emilia = read_excel('../Data/all_PM10_emilia.xlsx')
+meta_emilia = read_excel('../Data/all_PM10_emilia.xlsx', sheet = 2)
 # 2020 Data not considered
 PM10_Emilia = PM10_Emilia[which(PM10_Emilia$Anno!="2020"), ]
 
@@ -155,7 +155,7 @@ rm(list = ls())
 
 # PIEMONTE ----------------------------------------------------------------
 
-PM10_Piemonte = read_excel('PM10_all_piemonte.xlsx')
+PM10_Piemonte = read_excel('../Data/PM10_all_piemonte.xlsx')
 # 2020 Data not considered
 PM10_Piemonte = PM10_Piemonte[which(PM10_Piemonte$Anno!="2020"), ]
 
@@ -251,15 +251,15 @@ rm(list = ls())
 
 # DATASET 2018 ------------------------------------------------------------
 
-emilia = read_csv('Data/PM10_Emilia.csv')
+emilia = read_csv('../Data/PM10_Emilia.csv')
 emilia = emilia[which(emilia$Anno=="2018"), -1]
-lombardia = read_csv('Data/PM10_Lombardia.csv')
+lombardia = read_csv('../Data/PM10_Lombardia.csv')
 lombardia = lombardia[which(lombardia$Anno=="2018"), -1]
-piemonte = read_csv('Data/PM10_Piemonte.csv')
+piemonte = read_csv('../Data/PM10_Piemonte.csv')
 piemonte = piemonte[which(piemonte$Anno=="2018"), -1]
 
 data_2018 = rbind(lombardia, emilia, piemonte)
-write_csv(data_2018, 'Total_Data_2018.csv')
+write_csv(data_2018, '../Data/Total_Data_2018.csv')
 
 # Check on stations : 163 stations
 length(levels(factor(data_2018$NomeStazione)))
